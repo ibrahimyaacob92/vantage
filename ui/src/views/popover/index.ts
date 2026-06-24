@@ -55,8 +55,9 @@ function tabsSection(projectId: string): HTMLElement {
 
 function render() {
   const list = document.getElementById("list")!;
-  if (!views.length) { list.innerHTML = '<div class="empty">No projects yet. Open Settings to add one.</div>'; reportSize(); return; }
-  const sorted = [...views].sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
+  const visible = views.filter((v) => v.project.enabled !== false);
+  if (!visible.length) { list.innerHTML = '<div class="empty">No visible projects. Open Settings to add or show one.</div>'; reportSize(); return; }
+  const sorted = [...visible].sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
   list.innerHTML = "";
   for (const v of sorted) {
     const id = v.project.id;
@@ -99,7 +100,7 @@ async function refreshTabs(id: string) {
 
 async function tick() {
   views = await fetchState();
-  await Promise.all(views.filter(hasBrowser).map(async (v) => {
+  await Promise.all(views.filter((v) => v.project.enabled !== false && hasBrowser(v)).map(async (v) => {
     const r = await browserTabs(v.project.id);
     tabsCache.set(v.project.id, r.tabs);
   }));

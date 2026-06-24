@@ -30,6 +30,10 @@
       .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
       .row { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-top: 1px solid var(--line); }
       .row:first-child { border-top: none; }
+      .row.off .nm, .row.off .path, .row.off .code, .row.off .dot, .row.off .chip { opacity: .42; }
+      .iconbtn { flex: none; width: 30px; height: 26px; padding: 0; display: inline-flex; align-items: center;
+                 justify-content: center; border: none; background: none; color: var(--muted); border-radius: 7px; cursor: pointer; }
+      .iconbtn:hover { background: var(--chip); color: var(--text); }
       .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
       .nm { font-weight: 600; }
       .code { font-size: 10px; color: var(--muted); font-weight: 700; letter-spacing: .5px; background: var(--chip); padding: 1px 5px; border-radius: 4px; }

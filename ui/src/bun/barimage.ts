@@ -27,7 +27,9 @@ export interface BarRender { pngPath: string; width: number; }
 /** Render the menu-bar tiles to a crisp @2x PNG via the native (CoreText) helper.
  *  Returns the PNG path + logical width, or null if rendering failed. */
 export async function renderBar(views: ProjectView[], dark: boolean): Promise<BarRender | null> {
-  const sorted = [...views].sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
+  const sorted = [...views]
+    .filter((v) => (v.project as any).enabled !== false)
+    .sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
   const tiles = sorted.map((v) => {
     const sessions = v.claude.sessions.length ? v.claude.sessions : [{ status: v.claude.headline } as any];
     return { code: code4(v), dots: sessions.map((s) => COLOR[(s.status as ClaudeStatus)] ?? "#8e8e93") };
