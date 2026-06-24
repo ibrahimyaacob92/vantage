@@ -61,7 +61,8 @@ export async function renderBarPng(views: ProjectView[], dark: boolean): Promise
     await Bun.write(svgPath, svg);
     for (const bin of cairo) {
       try {
-        const proc = Bun.spawn([bin, svgPath, "-o", pngPath, "--output-width", String(width * 3), "--output-height", "66"], { stdout: "ignore", stderr: "ignore" });
+        // Render @2x: the tray treats the image as retina (2x), so height 44px → 22pt bar height.
+        const proc = Bun.spawn([bin, svgPath, "-o", pngPath, "--output-width", String(width * 2), "--output-height", "44"], { stdout: "ignore", stderr: "ignore" });
         const ok = (await proc.exited) === 0;
         if (ok) return pngPath;
       } catch { /* try next path */ }
