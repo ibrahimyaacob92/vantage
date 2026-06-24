@@ -17,8 +17,11 @@ function openSettings() {
 }
 
 tray.on("tray-clicked", (e: any) => {
-  tray.setMenu(buildTrayMenu(latest) as any);
   const action = e?.action ?? e?.data?.action ?? "";
+  if (action === "") {
+    tray.setMenu(buildTrayMenu(latest) as any);
+    return;
+  }
   if (action === "settings") openSettings();
   else if (action === "quit") process.exit(0);
 });

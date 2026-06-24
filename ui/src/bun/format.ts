@@ -9,10 +9,9 @@ export interface ProjectView {
   browser: { tabOpen: boolean; ref: unknown };
 }
 
-export interface MenuItemConfig {
-  label?: string; action?: string; type?: "normal" | "divider";
-  enabled?: boolean; submenu?: MenuItemConfig[];
-}
+export type MenuItemConfig =
+  | { type: "divider" | "separator" }
+  | { type?: "normal"; label?: string; action?: string; enabled?: boolean; checked?: boolean; hidden?: boolean; tooltip?: string; submenu?: MenuItemConfig[] };
 
 const PRIORITY: ClaudeStatus[] = [
   "blocked_permission", "error", "blocked_input", "compacting", "working", "idle", "gone",
