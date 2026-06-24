@@ -9,7 +9,8 @@ function reportSize() {
     // document/body scrollHeight is clamped to the window height and never shrinks).
     const root = document.getElementById("root");
     if (!root) return;
-    const h = Math.ceil(root.getBoundingClientRect().height) + 20; // + body padding
+    // body padding (10+10) + a few px so sub-pixel rounding never leaves a scroll.
+    const h = Math.ceil(root.getBoundingClientRect().height) + 20 + 6;
     if (h > 0 && Math.abs(h - lastH) > 1) { lastH = h; setPopoverSize(h); }
   });
 }
