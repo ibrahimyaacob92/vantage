@@ -178,6 +178,9 @@ app.post("/actions/browser/tabs", async (c) => {
   const dev = detection.getDev(p.id);
   const url = p.url || (p.port ? `http://localhost:${p.port}` : dev.port ? `http://localhost:${dev.port}` : null);
   const needle = url ? url.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
+  // Without a URL/port we can't match tabs to this project — return none
+  // (rather than every tab in Chrome).
+  if (!needle) return c.json({ tabs: [], url: null });
   const script = [
     'tell application "Google Chrome"',
     '  set out to ""',

@@ -86,9 +86,13 @@ async function render() {
     const actions = document.createElement("div"); actions.className = "actions";
     const edBtn = document.createElement("button"); edBtn.textContent = "Open editor";
     edBtn.onclick = () => focusEditor(id);
+    const canBrowse = !!(v.project.url || v.project.port || (v.dev && v.dev.port));
     const brBtn = document.createElement("button"); brBtn.className = "primary";
     brBtn.textContent = expanded.has(id) ? "Hide tabs" : "Open browser";
+    brBtn.disabled = !canBrowse;
+    if (!canBrowse) brBtn.title = "Set a port for this project to use the browser";
     brBtn.onclick = async () => {
+      if (!canBrowse) return;
       if (expanded.has(id)) { expanded.delete(id); render(); return; }
       expanded.add(id);
       await refreshTabs(id); // fetches tabs + re-renders
