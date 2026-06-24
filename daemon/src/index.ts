@@ -57,6 +57,26 @@ app.post("/actions/chrome/refresh", async (c) => {
   return c.json({ ok: true });
 });
 
+// Native macOS folder picker (used by the dashboard's "Browse…" button).
+// Runs the system "choose folder" dialog and returns its POSIX path, or
+// { canceled: true } if the user dismisses it. Never throws upstream.
+app.post("/actions/pick-folder", async (c) => {
+  const script = [
+    "try",
+    'return POSIX path of (choose folder with prompt "Select your project folder")',
+    "on error",
+    'return ""',
+    "end try",
+  ].join("\n");
+  try {
+    const out = (await Bun.$`osascript -e ${script}`.quiet().nothrow()).stdout.toString().trim();
+    if (!out) return c.json({ canceled: true });
+    return c.json({ path: out.replace(/\/$/, "") });
+  } catch {
+    return c.json({ canceled: true });
+  }
+});
+
 /**
  * Boot the daemon in the current process: bind the HTTP server, load state,
  * start the watchdog + port detector. Returns true if this process now owns

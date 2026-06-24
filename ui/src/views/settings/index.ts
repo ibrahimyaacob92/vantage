@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { listProjects, createProject, deleteProject, fetchState } from "../../bun/api";
+import { listProjects, createProject, deleteProject, fetchState, pickFolder } from "../../bun/api";
 
 const el = (id: string) => document.getElementById(id) as HTMLInputElement;
 
@@ -60,6 +60,15 @@ async function render() {
     list.appendChild(div);
   }
 }
+
+document.getElementById("browse")!.addEventListener("click", async () => {
+  const res = await pickFolder();
+  if (res.path) {
+    el("path").value = res.path;
+    // Helpfully default the name to the folder's basename if empty.
+    if (!el("name").value.trim()) el("name").value = res.path.split("/").filter(Boolean).pop() ?? "";
+  }
+});
 
 document.getElementById("add")!.addEventListener("click", async () => {
   const name = el("name").value.trim();
