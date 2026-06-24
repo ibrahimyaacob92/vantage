@@ -146,6 +146,71 @@ app.post("/actions/browser/open", async (c) => {
   return c.json({ ok: true, url });
 });
 
+// List Chrome tabs matching the project's URL/port (id, url, title per tab).
+app.post("/actions/browser/tabs", async (c) => {
+  let id = "";
+  try { id = ((await c.req.json()) as any).projectId; } catch {}
+  const p = registry.get(id);
+  if (!p) return c.json({ error: "not found" }, 404);
+  const dev = detection.getDev(p.id);
+  const url = p.url || (p.port ? `http://localhost:${p.port}` : dev.port ? `http://localhost:${dev.port}` : null);
+  const needle = url ? url.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
+  const script = [
+    'tell application "Google Chrome"',
+    '  set out to ""',
+    "  repeat with w from 1 to count windows",
+    "    repeat with t from 1 to count tabs of window w",
+    "      set tb to tab t of window w",
+    '      set out to out & (id of tb) & "\\t" & (URL of tb) & "\\t" & (title of tb) & "\\n"',
+    "    end repeat",
+    "  end repeat",
+    "  return out",
+    "end tell",
+  ].join("\n");
+  let tabs: { id: string; url: string; title: string }[] = [];
+  try {
+    const out = (await Bun.$`osascript -e ${script}`.quiet().nothrow()).stdout.toString();
+    for (const line of out.split("\n")) {
+      const parts = line.split("\t");
+      if (parts.length >= 2 && parts[0]) tabs.push({ id: parts[0], url: parts[1] ?? "", title: parts.slice(2).join("\t") });
+    }
+  } catch { /* Chrome closed */ }
+  if (needle) tabs = tabs.filter((t) => t.url.includes(needle));
+  return c.json({ tabs, url });
+});
+
+function tabActionScript(tabId: string, verb: "focus" | "close"): string {
+  const action = verb === "close"
+    ? '        close tab t of window w'
+    : '        set active tab index of window w to t\n        set index of window w to 1\n        activate';
+  return [
+    'tell application "Google Chrome"',
+    "  repeat with w from 1 to count windows",
+    "    repeat with t from 1 to count tabs of window w",
+    `      if (id of tab t of window w) is ${tabId} then`,
+    action,
+    '        return "ok"',
+    "      end if",
+    "    end repeat",
+    "  end repeat",
+    "end tell",
+  ].join("\n");
+}
+app.post("/actions/browser/focus-tab", async (c) => {
+  let tabId = "";
+  try { tabId = String(((await c.req.json()) as any).tabId).replace(/[^0-9]/g, ""); } catch {}
+  if (!tabId) return c.json({ error: "no tab" }, 400);
+  await Bun.$`osascript -e ${tabActionScript(tabId, "focus")}`.quiet().nothrow();
+  return c.json({ ok: true });
+});
+app.post("/actions/browser/close-tab", async (c) => {
+  let tabId = "";
+  try { tabId = String(((await c.req.json()) as any).tabId).replace(/[^0-9]/g, ""); } catch {}
+  if (!tabId) return c.json({ error: "no tab" }, 400);
+  await Bun.$`osascript -e ${tabActionScript(tabId, "close")}`.quiet().nothrow();
+  return c.json({ ok: true });
+});
+
 /**
  * Boot the daemon in the current process: bind the HTTP server, load state,
  * start the watchdog + port detector. Returns true if this process now owns

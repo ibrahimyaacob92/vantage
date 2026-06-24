@@ -20,5 +20,14 @@ const act = (path: string, projectId: string) =>
   j(fetch(`${DAEMON}${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ projectId }) }), null);
 export const focusEditor = (id: string) => act("/actions/editor/focus", id);
 export const openBrowser = (id: string) => act("/actions/browser/open", id);
+export interface ChromeTab { id: string; url: string; title: string; }
+export const browserTabs = (projectId: string) =>
+  j<{ tabs: ChromeTab[]; url: string | null }>(
+    fetch(`${DAEMON}/actions/browser/tabs`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ projectId }) }),
+    { tabs: [], url: null });
+const tabAct = (path: string, tabId: string) =>
+  j(fetch(`${DAEMON}${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ tabId }) }), null);
+export const focusTab = (tabId: string) => tabAct("/actions/browser/focus-tab", tabId);
+export const closeTab = (tabId: string) => tabAct("/actions/browser/close-tab", tabId);
 export const appSettings = () => j(fetch(`${DAEMON}/actions/app/settings`, { method: "POST" }), null);
 export const appQuit = () => j(fetch(`${DAEMON}/actions/app/quit`, { method: "POST" }), null);
