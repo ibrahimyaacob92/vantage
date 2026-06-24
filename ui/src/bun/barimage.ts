@@ -4,7 +4,7 @@ import { join } from "path";
 // Status → dot color in the rendered menu-bar tile.
 const COLOR: Record<ClaudeStatus, string> = {
   blocked_permission: "#ff453a", error: "#ff453a", blocked_input: "#ff453a",
-  compacting: "#bf5af0", working: "#ffd60a", idle: "#0a84ff", gone: "#8e8e93",
+  compacting: "#bf5af0", working: "#ffd60a", idle: "#30d158", gone: "#8e8e93",
 };
 const PRIORITY: ClaudeStatus[] = [
   "blocked_permission", "error", "blocked_input", "compacting", "working", "idle", "gone",

@@ -16,7 +16,7 @@ let outPath = args[2]
 let scale = CGFloat((spec["scale"] as? Double) ?? 2)
 let H = CGFloat((spec["h"] as? Double) ?? 22)
 let fontSize = CGFloat((spec["fontSize"] as? Double) ?? 6.5)
-let pad: CGFloat = 2, gap: CGFloat = 7, step: CGFloat = 4.6, dotR: CGFloat = 1.7
+let pad: CGFloat = 2, gap: CGFloat = 7, step: CGFloat = 5.2, dotR: CGFloat = 2.2
 let fgArr = (spec["fg"] as? [Double]) ?? [1, 1, 1]
 let fg = NSColor(srgbRed: CGFloat(fgArr[0]), green: CGFloat(fgArr[1]), blue: CGFloat(fgArr[2]), alpha: 1)
 let tiles = (spec["tiles"] as? [[String: Any]]) ?? []

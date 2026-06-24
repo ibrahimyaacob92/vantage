@@ -3,7 +3,7 @@ import { fetchState, focusEditor, openBrowser, appSettings, appQuit } from "../.
 
 const COLOR: Record<string, string> = {
   blocked_permission: "#ff453a", error: "#ff453a", blocked_input: "#ff453a",
-  compacting: "#bf5af0", working: "#ffd60a", idle: "#0a84ff", gone: "#8e8e93",
+  compacting: "#bf5af0", working: "#ffd60a", idle: "#30d158", gone: "#8e8e93",
 };
 const LABEL: Record<string, string> = {
   blocked_permission: "needs permission", error: "error", blocked_input: "waiting for input",

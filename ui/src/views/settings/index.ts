@@ -6,7 +6,7 @@ const byId = (id: string) => document.getElementById(id)!;
 
 const DOT: Record<string, string> = {
   blocked_permission: "🔴", error: "🔴", blocked_input: "🔴",
-  compacting: "🟣", working: "🟡", idle: "🔵", gone: "⚪",
+  compacting: "🟣", working: "🟡", idle: "🟢", gone: "⚪",
 };
 const PRIORITY = ["blocked_permission", "error", "blocked_input", "compacting", "working", "idle", "gone"];
 const LABEL: Record<string, string> = {
