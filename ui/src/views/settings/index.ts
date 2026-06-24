@@ -141,6 +141,16 @@ byId("addform").addEventListener("submit", async (e) => {
   renderList(); renderStatus();
 });
 
+// "Open at login" toggle — reflect current state, update on change.
+const startup = el("startup");
+getLoginItem().then((r) => { startup.checked = !!r.enabled; });
+startup.addEventListener("change", async () => {
+  await setLoginItem(startup.checked);
+  // re-read in case the OS rejected it (e.g. permission denied)
+  const r = await getLoginItem();
+  startup.checked = !!r.enabled;
+});
+
 renderList();
 renderStatus();
 setInterval(() => { renderStatus(); renderList(); }, 1500);
