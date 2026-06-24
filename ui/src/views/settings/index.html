@@ -4,50 +4,87 @@
     <meta charset="utf-8" />
     <title>projflow</title>
     <style>
-      body { font: 13px -apple-system, sans-serif; margin: 0; padding: 0; color: #1d1d1f; background: #fff; }
-      header { padding: 14px 16px 10px; }
-      h1 { font-size: 15px; margin: 0 0 2px; }
-      .sub { color: #888; font-size: 11px; }
-      #bar { font-size: 18px; padding: 10px 16px; background: #f5f5f7; border-top: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; letter-spacing: 1px; }
-      section { padding: 10px 16px; }
-      h2 { font-size: 11px; text-transform: uppercase; color: #999; letter-spacing: .5px; margin: 4px 0 8px; }
-      .proj { display: flex; align-items: center; gap: 8px; border-top: 1px solid #eee; padding: 8px 0; }
+      :root {
+        --bg: #ffffff; --panel: #f6f6f8; --line: #e7e7ec; --text: #1d1d1f;
+        --muted: #86868b; --accent: #0a84ff; --chip: #ececf1;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root { --bg: #1e1e20; --panel: #2a2a2d; --line: #3a3a3e; --text: #f2f2f4;
+                --muted: #9a9aa0; --accent: #0a84ff; --chip: #3a3a3e; }
+      }
+      * { box-sizing: border-box; }
+      body { font: 13px/1.45 -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; color: var(--text); background: var(--bg); }
+      header { padding: 16px 18px 12px; }
+      h1 { font-size: 16px; font-weight: 700; margin: 0; letter-spacing: -.2px; }
+      .tagline { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+      .barwrap { padding: 12px 18px; background: var(--panel); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+      .barlabel { font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 4px; }
+      #bar { font-size: 17px; letter-spacing: .5px; }
+
+      section { padding: 14px 18px; }
+      h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 0 0 10px; }
+
+      .card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+      .proj { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 1px solid var(--line); }
       .proj:first-child { border-top: none; }
-      .dot { font-size: 14px; }
-      .nm { font-weight: 600; }
-      .det { color: #888; font-size: 11px; }
-      .badge { font-size: 10px; color: #555; background: #eee; border-radius: 4px; padding: 1px 5px; }
-      input { font: inherit; padding: 3px 5px; margin: 2px; border: 1px solid #ccc; border-radius: 5px; }
-      button { font: inherit; cursor: pointer; }
-      .muted { color: #888; }
-      .addrow { border-top: 1px solid #eee; padding-top: 10px; margin-top: 6px; }
+      .dot { font-size: 15px; line-height: 1; }
+      .pname { font-weight: 600; }
+      .pdet { color: var(--muted); font-size: 11.5px; }
+      .spacer { flex: 1; }
+      .chip { font-size: 10.5px; color: var(--text); background: var(--chip); border-radius: 5px; padding: 2px 7px; font-variant-numeric: tabular-nums; }
+      .empty { color: var(--muted); font-size: 12px; padding: 14px 12px; text-align: center; }
+      .del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 4px 6px; border-radius: 6px; }
+      .del:hover { color: #ff453a; background: rgba(255,69,58,.12); }
+
+      form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+      .field { display: flex; flex-direction: column; gap: 3px; }
+      .field.full { grid-column: 1 / -1; }
+      label { font-size: 10.5px; color: var(--muted); }
+      .pathrow { display: flex; gap: 6px; }
+      input { font: inherit; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); width: 100%; }
+      input:focus { outline: none; border-color: var(--accent); }
+      button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 7px 12px; }
+      button:hover { background: var(--panel); }
+      .browse { white-space: nowrap; }
+      .add { grid-column: 1 / -1; background: var(--accent); color: #fff; border: none; font-weight: 600; padding: 9px; }
+      .add:hover { filter: brightness(1.07); }
     </style>
   </head>
   <body>
     <header>
       <h1>projflow</h1>
-      <div class="sub">which of your projects needs you, at a glance</div>
+      <div class="tagline">which of your projects needs you, at a glance</div>
     </header>
-    <div id="bar">starting…</div>
+
+    <div class="barwrap">
+      <div class="barlabel">menu-bar signal</div>
+      <div id="bar">starting…</div>
+    </div>
 
     <section>
       <h2>Live status</h2>
-      <div id="status"></div>
+      <div id="status" class="card"><div class="empty">loading…</div></div>
     </section>
 
     <section>
       <h2>Projects</h2>
-      <div id="list"></div>
-      <div class="addrow">
-        <input id="name" placeholder="name" size="9" />
-        <input id="path" placeholder="/abs/path" size="18" />
-        <button id="browse">Browse…</button>
-        <input id="cmd" placeholder="pnpm dev" size="8" />
-        <input id="port" placeholder="port" size="4" />
-        <button id="add">Add</button>
-      </div>
+      <div id="list" class="card"><div class="empty">no projects yet</div></div>
+      <form id="addform">
+        <div class="field full">
+          <label>Project folder</label>
+          <div class="pathrow">
+            <input id="path" placeholder="/Users/you/dev/my-app" />
+            <button type="button" id="browse" class="browse">Browse…</button>
+          </div>
+        </div>
+        <div class="field"><label>Name</label><input id="name" placeholder="my-app" /></div>
+        <div class="field"><label>Dev command</label><input id="cmd" placeholder="pnpm dev" /></div>
+        <div class="field"><label>Port (optional)</label><input id="port" placeholder="3000" /></div>
+        <button type="submit" class="add">Add project</button>
+      </form>
     </section>
 
-    <script type="module" src="./index.ts"></script>
+    <script type="module" src="./index.js"></script>
   </body>
 </html>

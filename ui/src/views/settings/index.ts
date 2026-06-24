@@ -2,75 +2,78 @@
 import { listProjects, createProject, deleteProject, fetchState, pickFolder } from "../../bun/api";
 
 const el = (id: string) => document.getElementById(id) as HTMLInputElement;
+const byId = (id: string) => document.getElementById(id)!;
 
 const DOT: Record<string, string> = {
   blocked_permission: "🔴", error: "🔴", blocked_input: "🔴",
   compacting: "🟣", working: "🟡", idle: "🔵", gone: "⚪",
 };
-const PRIORITY = ["blocked_permission","error","blocked_input","compacting","working","idle","gone"];
+const PRIORITY = ["blocked_permission", "error", "blocked_input", "compacting", "working", "idle", "gone"];
+const LABEL: Record<string, string> = {
+  blocked_permission: "needs permission", error: "error", blocked_input: "waiting for input",
+  compacting: "compacting", working: "working", idle: "idle", gone: "no session",
+};
 
 async function renderStatus() {
   const views = await fetchState();
-  // bar row (B summary + A per-project)
   const needs = views.filter((v) => v.claude.needsAttention).length;
-  const work = views.filter((v) => ["working","compacting"].includes(v.claude.headline)).length;
-  const idle = views.filter((v) => ["idle","gone"].includes(v.claude.headline)).length;
+  const work = views.filter((v) => ["working", "compacting"].includes(v.claude.headline)).length;
+  const idle = views.filter((v) => ["idle", "gone"].includes(v.claude.headline)).length;
   const sorted = [...views].sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
-  const bar = document.getElementById("bar")!;
-  bar.textContent = views.length
-    ? `🔴${needs} 🟡${work} 🔵${idle} ┃ ` + sorted.map((v) => DOT[v.claude.headline] + v.project.name).join(" ")
-    : "no projects registered yet — add one below";
 
-  const status = document.getElementById("status")!;
+  byId("bar").textContent = views.length
+    ? `🔴${needs} 🟡${work} 🔵${idle} ┃ ` + sorted.map((v) => DOT[v.claude.headline] + v.project.name).join(" ")
+    : "no projects yet";
+
+  const status = byId("status");
+  if (!views.length) { status.innerHTML = '<div class="empty">add a project below to start tracking it</div>'; return; }
   status.innerHTML = "";
   for (const v of sorted) {
     const row = document.createElement("div");
     row.className = "proj";
     const dot = document.createElement("span"); dot.className = "dot"; dot.textContent = DOT[v.claude.headline];
-    const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = v.project.name;
-    const det = document.createElement("span"); det.className = "det";
-    det.textContent = v.claude.headline + (v.claude.sessions?.[0]?.detail ? " · " + v.claude.sessions[0].detail : "");
-    row.append(dot, nm, det);
-    if (v.dev?.running && v.dev.port) { const b = document.createElement("span"); b.className = "badge"; b.textContent = ":" + v.dev.port; row.append(b); }
-    if (v.browser?.tabOpen) { const b = document.createElement("span"); b.className = "badge"; b.textContent = "tab"; row.append(b); }
+    const nm = document.createElement("span"); nm.className = "pname"; nm.textContent = v.project.name;
+    const det = document.createElement("span"); det.className = "pdet";
+    const sessDetail = v.claude.sessions?.[0]?.detail;
+    det.textContent = LABEL[v.claude.headline] + (sessDetail ? " · " + sessDetail : "");
+    const spacer = document.createElement("span"); spacer.className = "spacer";
+    row.append(dot, nm, det, spacer);
+    if (v.dev?.running && v.dev.port) { const b = document.createElement("span"); b.className = "chip"; b.textContent = ":" + v.dev.port; row.append(b); }
+    if (v.browser?.tabOpen) { const b = document.createElement("span"); b.className = "chip"; b.textContent = "tab"; row.append(b); }
     status.appendChild(row);
   }
 }
 
-async function render() {
+async function renderList() {
   const projects = await listProjects();
-  const list = document.getElementById("list")!;
+  const list = byId("list");
+  if (!projects.length) { list.innerHTML = '<div class="empty">no projects yet</div>'; return; }
   list.innerHTML = "";
   for (const p of projects) {
-    const div = document.createElement("div");
-    div.className = "row";
-    const nameEl = document.createElement("b");
-    nameEl.textContent = p.name;
-    const pathEl = document.createElement("span");
-    pathEl.className = "muted";
-    pathEl.textContent = p.path;
-    div.appendChild(nameEl);
-    div.appendChild(document.createTextNode(" "));
-    div.appendChild(pathEl);
-    div.appendChild(document.createTextNode(` · ${p.devCommand}${p.port ? " · :" + p.port : ""} `));
-    const del = document.createElement("button");
-    del.textContent = "Delete";
-    del.onclick = async () => { await deleteProject(p.id); render(); };
-    div.appendChild(del);
-    list.appendChild(div);
+    const row = document.createElement("div");
+    row.className = "proj";
+    const nm = document.createElement("span"); nm.className = "pname"; nm.textContent = p.name;
+    const det = document.createElement("span"); det.className = "pdet"; det.textContent = p.path;
+    const spacer = document.createElement("span"); spacer.className = "spacer";
+    row.append(nm, det, spacer);
+    if (p.port) { const b = document.createElement("span"); b.className = "chip"; b.textContent = ":" + p.port; row.append(b); }
+    const del = document.createElement("button"); del.className = "del"; del.textContent = "Remove";
+    del.onclick = async () => { await deleteProject(p.id); renderList(); renderStatus(); };
+    row.append(del);
+    list.appendChild(row);
   }
 }
 
-document.getElementById("browse")!.addEventListener("click", async () => {
+byId("browse").addEventListener("click", async () => {
   const res = await pickFolder();
   if (res.path) {
     el("path").value = res.path;
-    // Helpfully default the name to the folder's basename if empty.
     if (!el("name").value.trim()) el("name").value = res.path.split("/").filter(Boolean).pop() ?? "";
   }
 });
 
-document.getElementById("add")!.addEventListener("click", async () => {
+byId("addform").addEventListener("submit", async (e) => {
+  e.preventDefault();
   const name = el("name").value.trim();
   const path = el("path").value.trim();
   if (!name || !path) return;
@@ -80,10 +83,10 @@ document.getElementById("add")!.addEventListener("click", async () => {
     name, path, devCommand: el("cmd").value.trim() || "pnpm dev",
     port, url: port ? `http://localhost:${port}` : null, enabled: true,
   });
-  for (const f of ["name","path","cmd","port"]) el(f).value = "";
-  render();
+  for (const f of ["name", "path", "cmd", "port"]) el(f).value = "";
+  renderList(); renderStatus();
 });
 
-render();
+renderList();
 renderStatus();
 setInterval(renderStatus, 1000);

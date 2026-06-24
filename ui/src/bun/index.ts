@@ -1,4 +1,4 @@
-import { Tray, BrowserWindow } from "electrobun/bun";
+import { Tray, BrowserWindow, app } from "electrobun/bun";
 import { fetchState, refreshChrome } from "./api";
 import { formatBarTitle, buildTrayMenu } from "./format";
 import { startDaemon } from "../../../daemon/src/index";
@@ -25,8 +25,9 @@ function openDashboard() {
 }
 
 // Open the dashboard once on launch so projflow is visible even when a menu-bar
-// manager hides the tray icon.
+// manager hides the tray icon. Also reopen it when the dock icon is clicked.
 openDashboard();
+try { app.on("reopen", () => openDashboard()); } catch {}
 
 tray.on("tray-clicked", async (e: any) => {
   const action = e?.action ?? e?.data?.action ?? "";

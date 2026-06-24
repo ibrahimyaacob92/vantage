@@ -20,6 +20,21 @@ export function __setStores(r: Registry, s: SessionStore, d?: DetectionStore) {
   registry = r; store = s; if (d) detection = d;
 }
 
+// Allow the menu-bar app's webview (a different origin) to call the daemon.
+app.use("*", async (c, next) => {
+  if (c.req.method === "OPTIONS") {
+    return new Response(null, {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS",
+        "Access-Control-Allow-Headers": "content-type",
+      },
+    });
+  }
+  await next();
+  c.header("Access-Control-Allow-Origin", "*");
+});
+
 app.get("/health", (c) => c.json({ ok: true }));
 
 app.post("/hook", async (c) => {
