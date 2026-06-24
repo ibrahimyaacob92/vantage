@@ -32,6 +32,9 @@
       .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
       .row { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-top: 1px solid var(--line); }
       .row:first-child { border-top: none; }
+      .row.dragging { opacity: .5; background: var(--panel); }
+      .grip { color: var(--muted); cursor: grab; font-size: 13px; opacity: .45; user-select: none; flex: none; margin-right: -4px; }
+      .grip:active { cursor: grabbing; }
       .row.off .nm, .row.off .path, .row.off .code, .row.off .dot, .row.off .chip { opacity: .42; }
       .iconbtn { flex: none; width: 30px; height: 26px; padding: 0; display: inline-flex; align-items: center;
                  justify-content: center; border: none; background: none; color: var(--muted); border-radius: 7px; cursor: pointer; }

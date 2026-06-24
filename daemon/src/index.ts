@@ -67,6 +67,12 @@ app.delete("/projects/:id", async (c) => {
   await registry.remove(id);
   return c.json({ ok: true });
 });
+app.post("/actions/projects/reorder", async (c) => {
+  let ids: string[] = [];
+  try { ids = ((await c.req.json()) as any).ids ?? []; } catch {}
+  if (Array.isArray(ids) && ids.length) await registry.reorder(ids.map(String));
+  return c.json({ ok: true });
+});
 app.post("/actions/chrome/refresh", async (c) => {
   await new ChromeDetector(detection, realChromeDeps).refresh(registry.list());
   return c.json({ ok: true });

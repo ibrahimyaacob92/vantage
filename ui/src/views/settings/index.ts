@@ -1,5 +1,30 @@
 /// <reference lib="dom" />
-import { listProjects, createProject, updateProject, deleteProject, fetchState, pickFolder, getLoginItem, setLoginItem } from "../../bun/api";
+import { listProjects, createProject, updateProject, deleteProject, reorderProjects, fetchState, pickFolder, getLoginItem, setLoginItem } from "../../bun/api";
+
+// --- drag-and-drop reordering of the project list ---
+let dragEl: HTMLElement | null = null;
+let dragging = false;
+function getDragAfter(container: HTMLElement, y: number): HTMLElement | null {
+  const rows = [...container.querySelectorAll(".row:not(.dragging)")] as HTMLElement[];
+  let closest: { offset: number; el: HTMLElement | null } = { offset: -Infinity, el: null };
+  for (const r of rows) {
+    const box = r.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) closest = { offset, el: r };
+  }
+  return closest.el;
+}
+function initDnd() {
+  const list = document.getElementById("list");
+  if (!list) return;
+  list.addEventListener("dragover", (e) => {
+    if (!dragEl) return;
+    e.preventDefault();
+    const after = getDragAfter(list, (e as DragEvent).clientY);
+    if (after == null) list.appendChild(dragEl);
+    else if (after !== dragEl) list.insertBefore(dragEl, after);
+  });
+}
 
 const EYE = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
 const EYE_OFF = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
@@ -24,7 +49,7 @@ const mkdot = (status: string, size: string) => {
 
 async function renderStatus() {
   const views = (await fetchState()).filter((v: any) => v.project.enabled !== false);
-  const sorted = [...views].sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
+  const sorted = views; // keep the user's manual order
 
   // menu-bar preview (mirrors the real tile: code over colored session dots)
   const preview = byId("preview");
@@ -54,6 +79,16 @@ async function renderList() {
     const headline = v?.claude?.headline ?? "gone";
     const visible = p.enabled !== false;
     const row = document.createElement("div"); row.className = "row" + (visible ? "" : " off");
+    row.draggable = true; row.dataset.id = p.id;
+    row.addEventListener("dragstart", (e) => { dragEl = row; dragging = true; row.classList.add("dragging"); try { (e as DragEvent).dataTransfer!.effectAllowed = "move"; } catch {} });
+    row.addEventListener("dragend", async () => {
+      row.classList.remove("dragging"); dragEl = null; dragging = false;
+      const ids = [...byId("list").querySelectorAll(".row")].map((r) => (r as HTMLElement).dataset.id!).filter(Boolean);
+      await reorderProjects(ids);
+      renderList(); renderStatus();
+    });
+    const grip = document.createElement("span"); grip.className = "grip"; grip.textContent = "⠿"; grip.title = "Drag to reorder";
+    row.append(grip);
     row.appendChild(mkdot(headline, "dot"));
     const nm = document.createElement("span"); nm.className = "nm"; nm.textContent = p.name;
     const code = document.createElement("span"); code.className = "code"; code.textContent = code4(p);
@@ -159,6 +194,7 @@ startup.addEventListener("change", async () => {
   startup.checked = !!r.enabled;
 });
 
+initDnd();
 renderList();
 renderStatus();
-setInterval(() => { renderStatus(); renderList(); }, 1500);
+setInterval(() => { if (dragging) return; renderStatus(); renderList(); }, 1500);

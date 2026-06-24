@@ -35,6 +35,15 @@ export class Registry {
 
   async remove(id: string): Promise<void> { this.projects.delete(id); await this.save(); }
 
+  /** Reorder projects to match `ids`; any project not listed is kept at the end. */
+  async reorder(ids: string[]): Promise<void> {
+    const next = new Map<string, Project>();
+    for (const id of ids) { const p = this.projects.get(id); if (p) next.set(id, p); }
+    for (const [id, p] of this.projects) if (!next.has(id)) next.set(id, p);
+    this.projects = next;
+    await this.save();
+  }
+
   private async save(): Promise<void> {
     await mkdir(dirname(this.filePath), { recursive: true });
     const tmp = `${this.filePath}.tmp`;

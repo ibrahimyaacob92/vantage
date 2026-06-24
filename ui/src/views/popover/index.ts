@@ -54,7 +54,7 @@ function render() {
   const list = document.getElementById("list")!;
   const visible = views.filter((v) => v.project.enabled !== false);
   if (!visible.length) { list.innerHTML = '<div class="empty">No visible projects. Open Settings to add or show one.</div>'; reportSize(); return; }
-  const sorted = [...visible].sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
+  const sorted = visible; // keep the user's manual order from Settings
   list.innerHTML = "";
   for (const v of sorted) {
     const id = v.project.id;

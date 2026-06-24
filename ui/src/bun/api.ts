@@ -13,6 +13,8 @@ export const createProject = (p: any) =>
 export const updateProject = (id: string, patch: any) =>
   j(fetch(`${DAEMON}/projects/${id}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(patch) }), null);
 export const deleteProject = (id: string) => j(fetch(`${DAEMON}/projects/${id}`, { method: "DELETE" }), null);
+export const reorderProjects = (ids: string[]) =>
+  j(fetch(`${DAEMON}/actions/projects/reorder`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ids }) }), null);
 export const refreshChrome = () => j(fetch(`${DAEMON}/actions/chrome/refresh`, { method: "POST" }), null);
 export const pickFolder = () =>
   j<{ path?: string; canceled?: boolean }>(fetch(`${DAEMON}/actions/pick-folder`, { method: "POST" }), { canceled: true });
