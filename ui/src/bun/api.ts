@@ -31,3 +31,5 @@ export const focusTab = (tabId: string) => tabAct("/actions/browser/focus-tab", 
 export const closeTab = (tabId: string) => tabAct("/actions/browser/close-tab", tabId);
 export const appSettings = () => j(fetch(`${DAEMON}/actions/app/settings`, { method: "POST" }), null);
 export const appQuit = () => j(fetch(`${DAEMON}/actions/app/quit`, { method: "POST" }), null);
+export const setPopoverSize = (height: number) =>
+  j(fetch(`${DAEMON}/actions/app/popover-size`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ height }) }), null);

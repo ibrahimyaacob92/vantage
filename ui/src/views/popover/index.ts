@@ -1,5 +1,14 @@
 /// <reference lib="dom" />
-import { fetchState, focusEditor, openBrowser, appSettings, appQuit, browserTabs, focusTab, closeTab, type ChromeTab } from "../../bun/api";
+import { fetchState, focusEditor, openBrowser, appSettings, appQuit, browserTabs, focusTab, closeTab, setPopoverSize, type ChromeTab } from "../../bun/api";
+
+// Tell the host to resize the popover window to fit its content (no scrollbar).
+let lastH = 0;
+function reportSize() {
+  requestAnimationFrame(() => {
+    const h = Math.ceil(document.documentElement.scrollHeight);
+    if (h > 0 && Math.abs(h - lastH) > 1) { lastH = h; setPopoverSize(h); }
+  });
+}
 
 const COLOR: Record<string, string> = {
   blocked_permission: "#ff453a", error: "#ff453a", blocked_input: "#ff453a",
@@ -104,6 +113,7 @@ async function render() {
 
     list.appendChild(card);
   }
+  reportSize();
 }
 
 document.getElementById("settings")!.addEventListener("click", () => appSettings());

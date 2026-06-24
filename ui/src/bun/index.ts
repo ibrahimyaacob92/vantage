@@ -102,10 +102,17 @@ function flashOverlay(b: { x: number; y: number; w: number; h: number } | null) 
   overlayTimer = setTimeout(() => { try { overlayWin?.close(); } catch {} overlayWin = null; }, 1050);
 }
 
+function resizePopover(h: number) {
+  if (!popoverWin) return;
+  const clamped = Math.max(70, Math.min(Math.round(h), 760));
+  try { popoverWin.setSize(POPOVER_W, clamped); } catch {}
+}
+
 setAppActions({
   openSettings: () => { if (popoverVisible && popoverWin) { popoverWin.hide(); popoverVisible = false; } openDashboard(); },
   quit: () => { quitting = true; process.exit(0); },
   flash: flashOverlay,
+  resizePopover,
 });
 
 ensurePopover(); // keep a (hidden) window alive so closing things never quits the app

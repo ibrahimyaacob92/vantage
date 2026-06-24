@@ -75,7 +75,7 @@ app.post("/actions/chrome/refresh", async (c) => {
 // App-level actions the menu-bar UI triggers (wired by the host app, since the
 // daemon runs in-process with it). No-ops if the host hasn't registered them.
 type WinBounds = { x: number; y: number; w: number; h: number };
-let appActions: { openSettings?: () => void; quit?: () => void; flash?: (b: WinBounds | null) => void } = {};
+let appActions: { openSettings?: () => void; quit?: () => void; flash?: (b: WinBounds | null) => void; resizePopover?: (h: number) => void } = {};
 export function setAppActions(a: typeof appActions) { appActions = a; }
 
 async function chromeBounds(): Promise<WinBounds | null> {
@@ -97,6 +97,11 @@ async function processBounds(proc: string): Promise<WinBounds | null> {
 }
 app.post("/actions/app/settings", (c) => { appActions.openSettings?.(); return c.json({ ok: true }); });
 app.post("/actions/app/quit", (c) => { appActions.quit?.(); return c.json({ ok: true }); });
+app.post("/actions/app/popover-size", async (c) => {
+  let h = 0; try { h = Number(((await c.req.json()) as any).height) || 0; } catch {}
+  if (h > 0) appActions.resizePopover?.(h);
+  return c.json({ ok: true });
+});
 
 // Native macOS folder picker (used by the dashboard's "Browse…" button).
 // Runs the system "choose folder" dialog and returns its POSIX path, or
@@ -213,7 +218,7 @@ function tabActionScript(tabId: string, verb: "focus" | "close"): string {
     'tell application "Google Chrome"',
     "  repeat with w from 1 to count windows",
     "    repeat with t from 1 to count tabs of window w",
-    `      if (id of tab t of window w) is ${tabId} then`,
+    `      if ((id of tab t of window w) as text) is "${tabId}" then`,
     action,
     '        return "ok"',
     "      end if",
