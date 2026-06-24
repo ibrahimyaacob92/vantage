@@ -33,3 +33,6 @@ export const appSettings = () => j(fetch(`${DAEMON}/actions/app/settings`, { met
 export const appQuit = () => j(fetch(`${DAEMON}/actions/app/quit`, { method: "POST" }), null);
 export const setPopoverSize = (height: number) =>
   j(fetch(`${DAEMON}/actions/app/popover-size`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ height }) }), null);
+export const getLoginItem = () => j<{ enabled: boolean; supported?: boolean }>(fetch(`${DAEMON}/actions/app/login-item`), { enabled: false });
+export const setLoginItem = (enabled: boolean) =>
+  j(fetch(`${DAEMON}/actions/app/login-item`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled }) }), null);

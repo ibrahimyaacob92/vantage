@@ -26,6 +26,8 @@
       .ptile .pd { display: flex; gap: 3px; }
       .ptile .pdot { width: 5px; height: 5px; border-radius: 50%; }
       .preview .none { color: #aab; font-size: 11px; }
+      .pref { display: flex; align-items: center; gap: 7px; margin-top: 10px; font-size: 12.5px; color: var(--text); cursor: pointer; }
+      .pref input { width: 14px; height: 14px; cursor: pointer; }
 
       .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
       .row { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-top: 1px solid var(--line); }
@@ -69,6 +71,7 @@
     <section>
       <h2>Menu bar preview</h2>
       <div id="preview" class="preview"><span class="none">loading…</span></div>
+      <label class="pref"><input type="checkbox" id="startup" /> Open projflow automatically at login</label>
     </section>
 
     <section>

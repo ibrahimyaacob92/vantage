@@ -103,6 +103,35 @@ app.post("/actions/app/popover-size", async (c) => {
   return c.json({ ok: true });
 });
 
+// "Open at login" via a macOS Login Item (System Events). The app bundle path
+// is derived from where this process runs.
+function appBundlePath(): string | null {
+  for (const cand of [process.execPath, import.meta.dir]) {
+    const i = cand.indexOf(".app/");
+    if (i >= 0) return cand.slice(0, i + 4);
+  }
+  return null;
+}
+app.get("/actions/app/login-item", async (c) => {
+  const appPath = appBundlePath();
+  if (!appPath) return c.json({ enabled: false, supported: false });
+  try {
+    const script = 'tell application "System Events"\nset out to ""\nrepeat with li in login items\nset out to out & (path of li) & linefeed\nend repeat\nreturn out\nend tell';
+    const out = (await Bun.$`osascript -e ${script}`.quiet().nothrow()).stdout.toString();
+    return c.json({ enabled: out.split("\n").some((l) => l.trim() === appPath), supported: true });
+  } catch { return c.json({ enabled: false, supported: true }); }
+});
+app.post("/actions/app/login-item", async (c) => {
+  let enabled = false; try { enabled = !!((await c.req.json()) as any).enabled; } catch {}
+  const appPath = appBundlePath();
+  if (!appPath) return c.json({ ok: false });
+  const script = enabled
+    ? `tell application "System Events" to make login item at end with properties {path:${JSON.stringify(appPath)}, hidden:false}`
+    : `tell application "System Events" to delete (every login item whose path is ${JSON.stringify(appPath)})`;
+  await Bun.$`osascript -e ${script}`.quiet().nothrow();
+  return c.json({ ok: true });
+});
+
 // Native macOS folder picker (used by the dashboard's "Browse…" button).
 // Runs the system "choose folder" dialog and returns its POSIX path, or
 // { canceled: true } if the user dismisses it. Never throws upstream.

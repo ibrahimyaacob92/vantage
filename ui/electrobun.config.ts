@@ -18,7 +18,7 @@ const config: ElectrobunConfig = {
       "native/barrender": "bin/barrender",
     },
     mac: {
-      codesign: RELEASE,
+      codesign: RELEASE || process.env.SIGN === "1", // SIGN=1 to test signing without notarizing
       notarize: RELEASE,
       createDmg: RELEASE,
       icons: "icon.iconset",
