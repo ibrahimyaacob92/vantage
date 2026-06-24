@@ -25,7 +25,7 @@ export function buildBarSvg(views: ProjectView[], dark: boolean): { svg: string;
   const DOT_STEP = 3.4, DOT_R = 1.15;
   const CODE_Y = 12, DOTS_Y = 15.6; // shifted lower, rows close together
   const parts: string[] = [];
-  let x = 5;
+  let x = 1;
 
   sorted.forEach((v, i) => {
     const code = code4(v);
@@ -48,7 +48,7 @@ export function buildBarSvg(views: ProjectView[], dark: boolean): { svg: string;
     }
   });
 
-  const width = Math.max(Math.ceil(x + 5), 16);
+  const width = Math.max(Math.ceil(x + 1), 12);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${H}" viewBox="0 0 ${width} ${H}">${parts.join("")}</svg>`;
   return { svg, width };
 }
