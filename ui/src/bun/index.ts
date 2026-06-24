@@ -90,8 +90,12 @@ function togglePopover() {
   if (Date.now() - lastHideAt < 250) return;
   void refreshChrome();
   positionPopover();
+  // Pre-size to the last known content height so it opens at the right size (no
+  // open-at-440-then-shrink flicker). The webview keeps reporting while hidden.
+  if (lastPopoverHeight) { try { popoverWin!.setSize(POPOVER_W, lastPopoverHeight); } catch {} }
   popoverWin!.show();
   popoverWin!.focus();
+  if (lastPopoverHeight) { try { popoverWin!.setSize(POPOVER_W, lastPopoverHeight); } catch {} }
   popoverVisible = true;
 }
 
@@ -116,9 +120,11 @@ function flashOverlay(b: { x: number; y: number; w: number; h: number } | null) 
   overlayTimer = setTimeout(() => { try { overlayWin?.close(); } catch {} overlayWin = null; }, 1050);
 }
 
+let lastPopoverHeight = 0;
 function resizePopover(h: number) {
   if (!popoverWin) return;
   const clamped = Math.max(70, Math.min(Math.round(h), 760));
+  lastPopoverHeight = clamped;
   try { popoverWin.setSize(POPOVER_W, clamped); } catch {}
 }
 
