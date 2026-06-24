@@ -20,29 +20,30 @@ export function buildBarSvg(views: ProjectView[], dark: boolean): { svg: string;
   const fg = dark ? "#ffffff" : "#1d1d1f";
   const sorted = [...views].sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
   const H = 22;
-  const FONT = `font-family="SF Pro Text, -apple-system, Helvetica" font-size="6" font-weight="600" letter-spacing="0.2"`;
-  const DOT_STEP = 4.5, DOT_R = 1.4;
+  // Calibrated to match macOS menu-bar label size (e.g. Stats' "RAM").
+  const FONT = `font-family="SF Pro Text, -apple-system, Helvetica" font-size="4.5" font-weight="500" letter-spacing="0.2"`;
+  const DOT_STEP = 4, DOT_R = 1.15;
   const parts: string[] = [];
   let x = 5;
 
   sorted.forEach((v, i) => {
     const code = code4(v);
     const sessions = v.claude.sessions.length ? v.claude.sessions : [{ status: v.claude.headline } as any];
-    const codeW = code.length * 3.6;
+    const codeW = code.length * 2.7;
     const dotsW = Math.max((sessions.length - 1) * DOT_STEP + DOT_R * 2, DOT_R * 2);
     const tileW = Math.max(codeW, dotsW);
     // top row: code
-    parts.push(`<text x="${(x + tileW / 2).toFixed(1)}" y="9" ${FONT} text-anchor="middle" fill="${fg}">${esc(code)}</text>`);
+    parts.push(`<text x="${(x + tileW / 2).toFixed(1)}" y="8.5" ${FONT} text-anchor="middle" fill="${fg}">${esc(code)}</text>`);
     // bottom row: dots, centered under the tile
     let dx = x + tileW / 2 - ((sessions.length - 1) * DOT_STEP) / 2;
     for (const s of sessions) {
-      parts.push(`<circle cx="${dx.toFixed(1)}" cy="15" r="${DOT_R}" fill="${COLOR[(s.status as ClaudeStatus)] ?? "#8e8e93"}"/>`);
+      parts.push(`<circle cx="${dx.toFixed(1)}" cy="14" r="${DOT_R}" fill="${COLOR[(s.status as ClaudeStatus)] ?? "#8e8e93"}"/>`);
       dx += DOT_STEP;
     }
     x += tileW;
     if (i < sorted.length - 1) {
-      parts.push(`<rect x="${(x + 3).toFixed(1)}" y="6" width="0.7" height="10" rx="0.35" fill="${fg}" opacity="0.16"/>`);
-      x += 7;
+      parts.push(`<rect x="${(x + 3).toFixed(1)}" y="6.5" width="0.6" height="9" rx="0.3" fill="${fg}" opacity="0.15"/>`);
+      x += 6;
     }
   });
 
@@ -60,7 +61,7 @@ export async function renderBarPng(views: ProjectView[], dark: boolean): Promise
     await Bun.write(svgPath, svg);
     for (const bin of cairo) {
       try {
-        const proc = Bun.spawn([bin, svgPath, "-o", pngPath, "--output-width", String(width * 2), "--output-height", "44"], { stdout: "ignore", stderr: "ignore" });
+        const proc = Bun.spawn([bin, svgPath, "-o", pngPath, "--output-width", String(width * 3), "--output-height", "66"], { stdout: "ignore", stderr: "ignore" });
         const ok = (await proc.exited) === 0;
         if (ok) return pngPath;
       } catch { /* try next path */ }
