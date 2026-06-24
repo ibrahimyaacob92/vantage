@@ -5,7 +5,11 @@ import { fetchState, focusEditor, openBrowser, appSettings, appQuit, browserTabs
 let lastH = 0;
 function reportSize() {
   requestAnimationFrame(() => {
-    const h = Math.ceil(document.documentElement.scrollHeight);
+    // Measure the inner content wrapper (its height is independent of the window;
+    // document/body scrollHeight is clamped to the window height and never shrinks).
+    const root = document.getElementById("root");
+    if (!root) return;
+    const h = Math.ceil(root.getBoundingClientRect().height) + 20; // + body padding
     if (h > 0 && Math.abs(h - lastH) > 1) { lastH = h; setPopoverSize(h); }
   });
 }
