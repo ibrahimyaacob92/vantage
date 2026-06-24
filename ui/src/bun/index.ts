@@ -57,10 +57,26 @@ function ensurePopover() {
   } as any);
   popoverVisible = false;
 }
+const POPOVER_W = 340;
+function positionPopover() {
+  // Anchor the popover near the tray item, just below the menu bar. tray bounds
+  // share the window's horizontal origin; y is a small fixed offset (the bar).
+  try {
+    const b = tray.getBounds();
+    if (b && typeof b.x === "number" && b.x > 0) {
+      const right = b.x + (b.width || 0);
+      const x = Math.max(8, Math.round(right - POPOVER_W));
+      popoverWin!.setPosition(x, 26);
+      return;
+    }
+  } catch {}
+  popoverWin!.setPosition(200, 26);
+}
 function togglePopover() {
   ensurePopover();
   if (popoverVisible) { popoverWin!.hide(); popoverVisible = false; return; }
   void refreshChrome();
+  positionPopover();
   popoverWin!.show();
   popoverWin!.focus();
   popoverVisible = true;
