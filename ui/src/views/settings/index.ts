@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { listProjects, createProject, deleteProject, fetchState, pickFolder } from "../../bun/api";
+import { listProjects, createProject, updateProject, deleteProject, fetchState, pickFolder } from "../../bun/api";
 
 const el = (id: string) => document.getElementById(id) as HTMLInputElement;
 const byId = (id: string) => document.getElementById(id)!;
@@ -57,15 +57,45 @@ async function renderList() {
     const spacer = document.createElement("span"); spacer.className = "spacer";
     row.append(nm, code, path, spacer);
     if (p.port) { const c = document.createElement("span"); c.className = "chip"; c.textContent = ":" + p.port; row.append(c); }
+    const edit = document.createElement("button"); edit.className = "remove"; edit.textContent = "Edit";
+    edit.onclick = () => startEdit(p);
     const del = document.createElement("button"); del.className = "remove"; del.textContent = "Remove";
-    del.onclick = async () => { await deleteProject(p.id); renderList(); renderStatus(); };
-    row.append(del);
+    del.onclick = async () => { if (editingId === p.id) resetForm(); await deleteProject(p.id); renderList(); renderStatus(); };
+    row.append(edit, del);
     list.appendChild(row);
   }
 }
 
-// auto-fill code from name as you type (unless the user typed a code already)
+// --- add / edit form ---
+let editingId: string | null = null;
 let codeEdited = false;
+
+function resetForm() {
+  editingId = null;
+  codeEdited = false;
+  for (const f of ["name", "code", "path", "cmd", "port"]) el(f).value = "";
+  byId("formtitle").textContent = "Add a project";
+  byId("submit").textContent = "Add project";
+  byId("cancel").style.display = "none";
+}
+
+function startEdit(p: any) {
+  editingId = p.id;
+  codeEdited = true;
+  el("name").value = p.name ?? "";
+  el("code").value = (p.code || p.name || "").toString().replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase();
+  el("path").value = p.path ?? "";
+  el("cmd").value = p.devCommand ?? "";
+  el("port").value = p.port ? String(p.port) : "";
+  byId("formtitle").textContent = "Edit project";
+  byId("submit").textContent = "Save changes";
+  byId("cancel").style.display = "";
+  byId("name").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+byId("cancel").addEventListener("click", () => resetForm());
+
+// auto-fill code from name as you type (unless the user typed a code already)
 byId("code").addEventListener("input", () => { codeEdited = true; });
 byId("name").addEventListener("input", () => {
   if (!codeEdited) el("code").value = el("name").value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase();
@@ -89,13 +119,16 @@ byId("addform").addEventListener("submit", async (e) => {
   if (!name || !path) return;
   const port = el("port").value ? Number(el("port").value) : null;
   const code = (el("code").value.trim() || name).replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase();
-  await createProject({
-    id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+  const fields = {
     name, code, path, devCommand: el("cmd").value.trim() || "pnpm dev",
     port, url: port ? `http://localhost:${port}` : null, enabled: true,
-  });
-  for (const f of ["name", "code", "path", "cmd", "port"]) el(f).value = "";
-  codeEdited = false;
+  };
+  if (editingId) {
+    await updateProject(editingId, fields);
+  } else {
+    await createProject({ id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), ...fields });
+  }
+  resetForm();
   renderList(); renderStatus();
 });
 

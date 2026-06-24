@@ -73,7 +73,7 @@
     </section>
 
     <section>
-      <h2>Add a project</h2>
+      <h2 id="formtitle">Add a project</h2>
       <form id="addform">
         <div class="f full">
           <label>Project folder</label>
@@ -86,7 +86,10 @@
         <div class="f"><label>Code (4 letters)</label><input id="code" placeholder="MYAP" maxlength="4" /></div>
         <div class="f"><label>Dev command</label><input id="cmd" placeholder="pnpm dev" /></div>
         <div class="f"><label>Port (optional)</label><input id="port" placeholder="3000" /></div>
-        <button type="submit" class="add">Add project</button>
+        <div class="f full" style="flex-direction:row; gap:8px;">
+          <button type="button" id="cancel" class="browse" style="display:none; flex:0 0 auto;">Cancel</button>
+          <button type="submit" id="submit" class="add" style="flex:1;">Add project</button>
+        </div>
       </form>
     </section>
 
