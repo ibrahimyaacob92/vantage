@@ -2,7 +2,7 @@ import type { SessionStore } from "./sessions";
 
 export interface SweepOpts {
   pidAlive: (pid: number) => boolean;
-  staleMs: number;
+  staleMs: number; // reserved: future dead-heartbeat check; sweep() does not read it yet
   goneGraceMs: number;
 }
 

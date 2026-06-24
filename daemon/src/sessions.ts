@@ -37,6 +37,7 @@ export class SessionStore {
     const next = { ...s, status, lastEventAt: now, lastEvent: "watchdog" };
     this.sessions.set(id, next);
     if (status === "gone") this.goneAt.set(id, now);
+    else this.goneAt.delete(id);
     this.mirror();
   }
 
