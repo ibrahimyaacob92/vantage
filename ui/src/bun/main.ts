@@ -1,5 +1,5 @@
 import { Tray, BrowserWindow } from "electrobun/bun";
-import { fetchState } from "./api";
+import { fetchState, refreshChrome } from "./api";
 import { formatBarTitle, buildTrayMenu } from "./format";
 
 let latest = await fetchState();
@@ -16,9 +16,11 @@ function openSettings() {
   settingsWin.on("close", () => { settingsWin = null; });
 }
 
-tray.on("tray-clicked", (e: any) => {
+tray.on("tray-clicked", async (e: any) => {
   const action = e?.action ?? e?.data?.action ?? "";
   if (action === "") {
+    await refreshChrome();
+    latest = await fetchState();
     tray.setMenu(buildTrayMenu(latest) as any);
     return;
   }

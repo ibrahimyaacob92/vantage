@@ -34,17 +34,22 @@ app.get("/state", (c) => c.json(buildProjectViews(registry.list(), store.all(), 
 
 app.get("/projects", (c) => c.json(registry.list()));
 app.post("/projects", async (c) => {
-  const p = (await c.req.json()) as Project;
+  let p: Project;
+  try { p = (await c.req.json()) as Project; } catch { return c.json({ error: "invalid body" }, 400); }
   await registry.add(p);
   return c.json(p, 201);
 });
 app.put("/projects/:id", async (c) => {
-  const patch = (await c.req.json()) as Partial<Project>;
-  const updated = await registry.update(c.req.param("id"), patch);
+  let patch: Partial<Project>;
+  try { patch = (await c.req.json()) as Partial<Project>; } catch { return c.json({ error: "invalid body" }, 400); }
+  let updated: Project;
+  try { updated = await registry.update(c.req.param("id"), patch); } catch { return c.json({ error: "not found" }, 404); }
   return c.json(updated);
 });
 app.delete("/projects/:id", async (c) => {
-  await registry.remove(c.req.param("id"));
+  const id = c.req.param("id");
+  if (!registry.get(id)) return c.json({ error: "not found" }, 404);
+  await registry.remove(id);
   return c.json({ ok: true });
 });
 app.post("/actions/chrome/refresh", async (c) => {

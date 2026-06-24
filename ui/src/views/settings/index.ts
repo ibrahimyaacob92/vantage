@@ -10,8 +10,15 @@ async function render() {
   for (const p of projects) {
     const div = document.createElement("div");
     div.className = "row";
-    div.innerHTML = `<b>${p.name}</b> <span class="muted">${p.path}</span> · ${p.devCommand}` +
-      `${p.port ? " · :" + p.port : ""} `;
+    const nameEl = document.createElement("b");
+    nameEl.textContent = p.name;
+    const pathEl = document.createElement("span");
+    pathEl.className = "muted";
+    pathEl.textContent = p.path;
+    div.appendChild(nameEl);
+    div.appendChild(document.createTextNode(" "));
+    div.appendChild(pathEl);
+    div.appendChild(document.createTextNode(` · ${p.devCommand}${p.port ? " · :" + p.port : ""} `));
     const del = document.createElement("button");
     del.textContent = "Delete";
     del.onclick = async () => { await deleteProject(p.id); render(); };

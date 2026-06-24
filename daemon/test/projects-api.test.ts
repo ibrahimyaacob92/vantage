@@ -34,3 +34,21 @@ test("PUT patches and DELETE removes", async () => {
   expect((await del.json())).toEqual({ ok: true });
   expect(await (await app.request("/projects")).json()).toEqual([]);
 });
+
+test("PUT on a missing project returns 404", async () => {
+  await seed();
+  const res = await app.request("/projects/nope", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ port: 1 }) });
+  expect(res.status).toBe(404);
+});
+
+test("POST with invalid JSON body returns 400", async () => {
+  await seed();
+  const res = await app.request("/projects", { method: "POST", headers: { "content-type": "application/json" }, body: "{ not json" });
+  expect(res.status).toBe(400);
+});
+
+test("DELETE on a missing project returns 404", async () => {
+  await seed();
+  const res = await app.request("/projects/nope", { method: "DELETE" });
+  expect(res.status).toBe(404);
+});
