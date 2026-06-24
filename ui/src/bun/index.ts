@@ -40,26 +40,38 @@ function openDashboard() {
 }
 
 // Custom popover (replaces the native menu): per-project status + actions.
+// IMPORTANT: we HIDE rather than close it. Electrobun quits the app when its
+// last window closes, so a persistent (hidden) window keeps the tray alive.
 let popoverWin: BrowserWindow | null = null;
-async function togglePopover() {
-  if (popoverWin) { popoverWin.close(); popoverWin = null; return; }
-  void refreshChrome();
+let popoverVisible = false;
+function ensurePopover() {
+  if (popoverWin) return;
   let x = 320, y = 28;
-  try { const b = tray.getBounds(); if (b && b.x) x = Math.max(8, Math.round(b.x) - 160); } catch {}
+  try { const b = tray.getBounds(); if (b && b.x) x = Math.max(8, Math.round(b.x) - 170); } catch {}
   popoverWin = new BrowserWindow({
     title: "projflow",
     url: "views://popover/index.html",
     frame: { width: 340, height: 440, x, y },
   });
-  popoverWin.on("close", () => { popoverWin = null; });
+  popoverWin.hide();
+  popoverVisible = false;
+}
+function togglePopover() {
+  ensurePopover();
+  if (popoverVisible) { popoverWin!.hide(); popoverVisible = false; return; }
+  void refreshChrome();
+  popoverWin!.show();
+  popoverWin!.focus();
+  popoverVisible = true;
 }
 
 setAppActions({
-  openSettings: () => { if (popoverWin) { popoverWin.close(); popoverWin = null; } openDashboard(); },
+  openSettings: () => { if (popoverVisible && popoverWin) { popoverWin.hide(); popoverVisible = false; } openDashboard(); },
   quit: () => process.exit(0),
 });
 
-tray.on("tray-clicked", () => { void togglePopover(); });
+ensurePopover(); // keep a (hidden) window alive so closing things never quits the app
+tray.on("tray-clicked", () => { togglePopover(); });
 try { app.on("reopen", () => togglePopover()); } catch {}
 
 await updateBar();
