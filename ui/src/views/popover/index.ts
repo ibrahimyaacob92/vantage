@@ -1,20 +1,6 @@
 /// <reference lib="dom" />
 import { fetchState, focusEditor, openBrowser, appSettings, appQuit, browserTabs, focusTab, closeTab, setPopoverSize, type ChromeTab } from "../../bun/api";
 
-// Tell the host to resize the popover window to fit its content (no scrollbar).
-let lastH = 0;
-function reportSize() {
-  requestAnimationFrame(() => {
-    // Measure the inner content wrapper (its height is independent of the window;
-    // document/body scrollHeight is clamped to the window height and never shrinks).
-    const root = document.getElementById("root");
-    if (!root) return;
-    // body padding (10+10) + a few px so sub-pixel rounding never leaves a scroll.
-    const h = Math.ceil(root.getBoundingClientRect().height) + 20 + 6;
-    if (h > 0 && Math.abs(h - lastH) > 1) { lastH = h; setPopoverSize(h); }
-  });
-}
-
 const COLOR: Record<string, string> = {
   blocked_permission: "#ff453a", error: "#ff453a", blocked_input: "#ff453a",
   compacting: "#bf5af0", working: "#ffd60a", idle: "#30d158", gone: "#8e8e93",
@@ -25,9 +11,10 @@ const LABEL: Record<string, string> = {
 };
 const PRIORITY = ["blocked_permission", "error", "blocked_input", "compacting", "working", "idle", "gone"];
 const code4 = (p: any) => (p.code || p.name).replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase() || "····";
+const hasBrowser = (v: any) => !!(v.project.url || v.project.port || (v.dev && v.dev.port));
+const pathOf = (url: string) => { const p = url.replace(/^https?:\/\/[^/]+/, ""); return p || "/"; };
 
-// Per-project tab-manager state.
-const expanded = new Set<string>();
+let views: any[] = [];
 const tabsCache = new Map<string, ChromeTab[]>();
 
 function dot(status: string, cls = "dot"): HTMLSpanElement {
@@ -35,44 +22,40 @@ function dot(status: string, cls = "dot"): HTMLSpanElement {
   d.style.background = COLOR[status] ?? "#8e8e93"; return d;
 }
 
-async function refreshTabs(id: string) {
-  const r = await browserTabs(id);
-  tabsCache.set(id, r.tabs);
-  render();
+// --- height: measure inner content, tell host to resize (no scrollbar) ---
+let lastH = 0;
+function reportSize() {
+  requestAnimationFrame(() => {
+    const root = document.getElementById("root");
+    if (!root) return;
+    const h = Math.ceil(root.getBoundingClientRect().height) + 20 + 6;
+    if (h > 0 && Math.abs(h - lastH) > 1) { lastH = h; setPopoverSize(h); }
+  });
 }
 
 function tabsSection(projectId: string): HTMLElement {
   const wrap = document.createElement("div"); wrap.className = "tabs";
-  const hdr = document.createElement("div"); hdr.className = "tabhdr"; hdr.textContent = "Browser tabs";
-  wrap.appendChild(hdr);
   const tabs = tabsCache.get(projectId) ?? [];
-  if (!tabs.length) {
-    const none = document.createElement("div"); none.className = "notabs"; none.textContent = "No matching tabs open.";
-    wrap.appendChild(none);
-  }
   for (const t of tabs) {
     const row = document.createElement("div"); row.className = "tab";
-    const u = document.createElement("div"); u.className = "u";
-    u.title = t.url;
-    const main = document.createElement("div"); main.textContent = t.url;
-    const sub = document.createElement("div"); sub.className = "t"; sub.textContent = t.title || "";
-    u.append(main, sub);
+    const u = document.createElement("div"); u.className = "u"; u.title = t.url;
+    u.textContent = pathOf(t.url);
     u.onclick = () => focusTab(t.id);
     const x = document.createElement("button"); x.className = "x"; x.textContent = "✕"; x.title = "Close tab";
     x.onclick = async () => { await closeTab(t.id); await refreshTabs(projectId); };
     row.append(u, x);
     wrap.appendChild(row);
   }
+  if (!tabs.length) { const none = document.createElement("div"); none.className = "notabs"; none.textContent = "No tabs open."; wrap.appendChild(none); }
   const nt = document.createElement("button"); nt.className = "newtab"; nt.textContent = "＋ Open new tab";
   nt.onclick = async () => { await openBrowser(projectId); await refreshTabs(projectId); };
   wrap.appendChild(nt);
   return wrap;
 }
 
-async function render() {
-  const views = await fetchState();
+function render() {
   const list = document.getElementById("list")!;
-  if (!views.length) { list.innerHTML = '<div class="empty">No projects yet. Open Settings to add one.</div>'; return; }
+  if (!views.length) { list.innerHTML = '<div class="empty">No projects yet. Open Settings to add one.</div>'; reportSize(); return; }
   const sorted = [...views].sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
   list.innerHTML = "";
   for (const v of sorted) {
@@ -86,6 +69,10 @@ async function render() {
     const spacer = document.createElement("span"); spacer.className = "spacer";
     top.append(name, code, spacer);
     if (v.dev?.running && v.dev.port) { const c = document.createElement("span"); c.className = "chip"; c.textContent = ":" + v.dev.port; top.append(c); }
+    const edBtn = document.createElement("button"); edBtn.className = "iconbtn"; edBtn.title = "Open in editor";
+    edBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>';
+    edBtn.onclick = () => focusEditor(id);
+    top.append(edBtn);
     card.appendChild(top);
 
     const status = document.createElement("div"); status.className = "status";
@@ -97,32 +84,30 @@ async function render() {
     }
     card.appendChild(status);
 
-    const actions = document.createElement("div"); actions.className = "actions";
-    const edBtn = document.createElement("button"); edBtn.textContent = "Open editor";
-    edBtn.onclick = () => focusEditor(id);
-    const canBrowse = !!(v.project.url || v.project.port || (v.dev && v.dev.port));
-    const brBtn = document.createElement("button"); brBtn.className = "primary";
-    brBtn.textContent = expanded.has(id) ? "Hide tabs" : "Open browser";
-    brBtn.disabled = !canBrowse;
-    if (!canBrowse) brBtn.title = "Set a port for this project to use the browser";
-    brBtn.onclick = async () => {
-      if (!canBrowse) return;
-      if (expanded.has(id)) { expanded.delete(id); render(); return; }
-      expanded.add(id);
-      await refreshTabs(id); // fetches tabs + re-renders
-    };
-    actions.append(edBtn, brBtn);
-    card.appendChild(actions);
-
-    if (expanded.has(id)) card.appendChild(tabsSection(id));
+    if (hasBrowser(v)) card.appendChild(tabsSection(id));
 
     list.appendChild(card);
   }
   reportSize();
 }
 
+async function refreshTabs(id: string) {
+  const r = await browserTabs(id);
+  tabsCache.set(id, r.tabs);
+  render();
+}
+
+async function tick() {
+  views = await fetchState();
+  await Promise.all(views.filter(hasBrowser).map(async (v) => {
+    const r = await browserTabs(v.project.id);
+    tabsCache.set(v.project.id, r.tabs);
+  }));
+  render();
+}
+
 document.getElementById("settings")!.addEventListener("click", () => appSettings());
 document.getElementById("quit")!.addEventListener("click", () => appQuit());
 
-render();
-setInterval(render, 1500);
+tick();
+setInterval(tick, 2000);
