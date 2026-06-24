@@ -52,7 +52,6 @@ function ensurePopover() {
     url: "views://popover/index.html",
     frame: { width: 340, height: 440, x, y },
     titleBarStyle: "hidden",   // borderless: no title bar, no close button to accidentally kill the app
-    transparent: true,         // so the rounded panel corners show (desktop behind)
     hidden: true,              // start hidden (no flash); toggled by the tray
   } as any);
   popoverVisible = false;
@@ -64,8 +63,9 @@ function positionPopover() {
   try {
     const b = tray.getBounds();
     if (b && typeof b.x === "number" && b.x > 0) {
-      const right = b.x + (b.width || 0);
-      const x = Math.max(8, Math.round(right - POPOVER_W));
+      // center the popover horizontally under the menu-bar tile
+      const center = b.x + (b.width || 0) / 2;
+      const x = Math.max(8, Math.round(center - POPOVER_W / 2));
       popoverWin!.setPosition(x, 26);
       return;
     }

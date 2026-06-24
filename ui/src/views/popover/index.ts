@@ -28,8 +28,7 @@ function reportSize() {
   requestAnimationFrame(() => {
     const root = document.getElementById("root");
     if (!root) return;
-    // root height + body padding (14*2) + small buffer for the shadow/rounding.
-    const h = Math.ceil(root.getBoundingClientRect().height) + 28 + 4;
+    const h = Math.ceil(root.getBoundingClientRect().height) + 20 + 6; // body padding + buffer
     if (h > 0 && Math.abs(h - lastH) > 1) { lastH = h; setPopoverSize(h); }
   });
 }
