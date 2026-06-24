@@ -1,0 +1,14 @@
+{
+  "name": "projd",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test",
+    "install-hooks": "bun run hooks/install.ts",
+    "uninstall-hooks": "bun run hooks/uninstall.ts"
+  },
+  "dependencies": { "hono": "^4.6.0" },
+  "devDependencies": { "@types/bun": "latest" }
+}
