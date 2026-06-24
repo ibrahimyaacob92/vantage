@@ -21,7 +21,7 @@ export function buildBarSvg(views: ProjectView[], dark: boolean): { svg: string;
   const sorted = [...views].sort((a, b) => PRIORITY.indexOf(a.claude.headline) - PRIORITY.indexOf(b.claude.headline));
   const H = 22;
   // Calibrated to match macOS menu-bar label size (e.g. Stats' "RAM").
-  const FONT = `font-family="SF Pro Text, -apple-system, Helvetica" font-size="4.5" font-weight="500" letter-spacing="0.2"`;
+  const FONT = `font-family="SF Pro Text, -apple-system, Helvetica" font-size="5.2" font-weight="500" letter-spacing="0.2"`;
   const DOT_STEP = 3.4, DOT_R = 1.15;
   const CODE_Y = 12, DOTS_Y = 15.6; // shifted lower, rows close together
   const parts: string[] = [];
@@ -30,7 +30,7 @@ export function buildBarSvg(views: ProjectView[], dark: boolean): { svg: string;
   sorted.forEach((v, i) => {
     const code = code4(v);
     const sessions = v.claude.sessions.length ? v.claude.sessions : [{ status: v.claude.headline } as any];
-    const codeW = code.length * 2.7;
+    const codeW = code.length * 3.1;
     const dotsW = Math.max((sessions.length - 1) * DOT_STEP + DOT_R * 2, DOT_R * 2);
     const tileW = Math.max(codeW, dotsW);
     // top row: code
