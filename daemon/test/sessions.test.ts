@@ -43,7 +43,16 @@ test("removeGone drops sessions ended past the grace window", () => {
 test("state survives reload from disk", async () => {
   const store = new SessionStore(file);
   store.upsertFromHook(ev("SessionStart", { pid: 9 }), projects, 1);
+  // mirror() is fire-and-forget; allow the async write+rename to complete
+  await Bun.sleep(50);
   const store2 = new SessionStore(file);
   await store2.load();
   expect(store2.get("s1")?.pid).toBe(9);
+});
+
+test("corrupt sessions.json degrades to empty store, no throw", async () => {
+  await Bun.write(file, "{ not json");
+  const store = new SessionStore(file);
+  await store.load(); // must not throw
+  expect(store.all()).toEqual([]);
 });

@@ -45,3 +45,10 @@ test("load on missing file starts empty", async () => {
   await r.load();
   expect(r.list()).toEqual([]);
 });
+
+test("corrupt projects.json degrades to empty registry, no throw", async () => {
+  await Bun.write(file, "{ not json");
+  const r = new Registry(file);
+  await r.load(); // must not throw
+  expect(r.list()).toEqual([]);
+});

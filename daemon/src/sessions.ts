@@ -1,4 +1,5 @@
 import { mkdirSync } from "fs";
+import { rename } from "fs/promises";
 import { dirname } from "path";
 import type { Session, Project, HookPayload } from "./types";
 import { newSession, transition } from "./state-machine";
@@ -12,8 +13,13 @@ export class SessionStore {
   async load(): Promise<void> {
     const f = Bun.file(this.filePath);
     if (await f.exists()) {
-      const arr = (await f.json()) as Session[];
-      this.sessions = new Map(arr.map((s) => [s.sessionId, s]));
+      try {
+        const arr = (await f.json()) as Session[];
+        this.sessions = new Map(arr.map((s) => [s.sessionId, s]));
+      } catch {
+        // Corrupt or partial file: degrade to empty store rather than crashing daemon boot
+        this.sessions = new Map();
+      }
     }
   }
 
@@ -51,7 +57,10 @@ export class SessionStore {
   private mirror(): void {
     try {
       mkdirSync(dirname(this.filePath), { recursive: true });
-      void Bun.write(this.filePath, JSON.stringify(this.all(), null, 2)).catch(() => {});
+      const tmp = `${this.filePath}.tmp`;
+      void Bun.write(tmp, JSON.stringify(this.all(), null, 2))
+        .then(() => rename(tmp, this.filePath))
+        .catch(() => {});
     } catch { /* mirror is best-effort; never block a hook */ }
   }
 }

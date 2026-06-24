@@ -1,4 +1,4 @@
-import { mkdir } from "fs/promises";
+import { mkdir, rename } from "fs/promises";
 import { dirname } from "path";
 import type { Project } from "./types";
 
@@ -9,8 +9,13 @@ export class Registry {
   async load(): Promise<void> {
     const f = Bun.file(this.filePath);
     if (await f.exists()) {
-      const arr = (await f.json()) as Project[];
-      this.projects = new Map(arr.map((p) => [p.id, p]));
+      try {
+        const arr = (await f.json()) as Project[];
+        this.projects = new Map(arr.map((p) => [p.id, p]));
+      } catch {
+        // Corrupt or partial file: degrade to empty registry rather than crashing daemon boot
+        this.projects = new Map();
+      }
     }
   }
 
@@ -32,6 +37,8 @@ export class Registry {
 
   private async save(): Promise<void> {
     await mkdir(dirname(this.filePath), { recursive: true });
-    await Bun.write(this.filePath, JSON.stringify(this.list(), null, 2));
+    const tmp = `${this.filePath}.tmp`;
+    await Bun.write(tmp, JSON.stringify(this.list(), null, 2));
+    await rename(tmp, this.filePath);
   }
 }

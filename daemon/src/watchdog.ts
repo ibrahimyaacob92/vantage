@@ -2,7 +2,6 @@ import type { SessionStore } from "./sessions";
 
 export interface SweepOpts {
   pidAlive: (pid: number) => boolean;
-  staleMs: number; // reserved: future dead-heartbeat check; sweep() does not read it yet
   goneGraceMs: number;
 }
 
@@ -13,7 +12,16 @@ export function sweep(store: SessionStore, now: number, opts: SweepOpts): void {
     if (s.status === "gone") continue;
     const dead = s.pid != null && !opts.pidAlive(s.pid);
     if (dead) {
-      store.markStatus(s.sessionId, s.status === "working" ? "error" : "gone", now);
+      if (s.status === "working") {
+        // First detection of a dead working process: surface the failure
+        store.markStatus(s.sessionId, "error", now);
+      } else if (s.status === "error") {
+        // A prior sweep already surfaced the failure and pid is still dead: enroll in grace reaper
+        store.markStatus(s.sessionId, "gone", now);
+      } else {
+        // idle / waiting / any other non-gone status with dead pid -> gone directly
+        store.markStatus(s.sessionId, "gone", now);
+      }
     }
     // live pid + stale heartbeat while working => leave as working (long tool runs are normal)
   }
@@ -26,7 +34,7 @@ export function realPidAlive(pid: number): boolean {
 
 export function startWatchdog(store: SessionStore, intervalMs = 20_000) {
   return setInterval(
-    () => sweep(store, Date.now(), { pidAlive: realPidAlive, staleMs: 90_000, goneGraceMs: 10_000 }),
+    () => sweep(store, Date.now(), { pidAlive: realPidAlive, goneGraceMs: 10_000 }),
     intervalMs,
   );
 }

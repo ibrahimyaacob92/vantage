@@ -8,7 +8,7 @@ import type { Project } from "../src/types";
 
 const tmp = () => join(mkdtempSync(join(tmpdir(), "projflow-")), "x.json");
 const projects: Project[] = [{ id: "web", name: "web", path: "/dev/web", devCommand: "pnpm dev", port: null, url: null, enabled: true }];
-const opts = (alive: boolean) => ({ pidAlive: () => alive, staleMs: 90_000, goneGraceMs: 10_000 });
+const opts = (alive: boolean) => ({ pidAlive: () => alive, goneGraceMs: 10_000 });
 
 test("working session with dead pid -> error", () => {
   const store = new SessionStore(tmp());
@@ -33,4 +33,27 @@ test("working session with live pid but stale heartbeat stays working", () => {
   store.upsertFromHook({ hook_event_name: "PreToolUse", session_id: "s3", cwd: "/dev/web", tool_name: "Bash" } as any, projects, 2);
   sweep(store, 2 + 200_000, opts(true)); // very stale but alive
   expect(store.get("s3")?.status).toBe("working");
+});
+
+test("error session with still-dead pid -> gone on second sweep, then reaped after grace window", () => {
+  const store = new SessionStore(tmp());
+  // Set up a working session with a dead pid
+  store.upsertFromHook({ hook_event_name: "SessionStart", session_id: "s4", cwd: "/dev/web", pid: 9999 } as any, projects, 1);
+  store.upsertFromHook({ hook_event_name: "PreToolUse", session_id: "s4", cwd: "/dev/web", tool_name: "Bash" } as any, projects, 2);
+
+  // First sweep: working + dead pid -> error
+  sweep(store, 3, opts(false));
+  expect(store.get("s4")?.status).toBe("error");
+
+  // Second sweep: error + still-dead pid -> gone
+  sweep(store, 4, opts(false));
+  expect(store.get("s4")?.status).toBe("gone");
+
+  // Within grace window: session is still present
+  store.removeGone(4 + 5_000, 10_000);
+  expect(store.get("s4")).toBeDefined();
+
+  // After grace window: session is removed
+  store.removeGone(4 + 11_000, 10_000);
+  expect(store.get("s4")).toBeUndefined();
 });
