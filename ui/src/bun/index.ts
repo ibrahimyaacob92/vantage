@@ -52,8 +52,9 @@ function ensurePopover() {
     title: "projflow",
     url: "views://popover/index.html",
     frame: { width: 340, height: 440, x, y },
-  });
-  popoverWin.hide();
+    titleBarStyle: "hidden",   // borderless: no title bar, no close button to accidentally kill the app
+    hidden: true,              // start hidden (no flash); toggled by the tray
+  } as any);
   popoverVisible = false;
 }
 function togglePopover() {
@@ -65,9 +66,14 @@ function togglePopover() {
   popoverVisible = true;
 }
 
+// Backstop: veto any quit the user didn't explicitly ask for (e.g. ⌘Q, a
+// window closing). Only our Quit button flips `quitting` then hard-exits.
+let quitting = false;
+try { app.on("before-quit", () => ({ allow: quitting })); } catch {}
+
 setAppActions({
   openSettings: () => { if (popoverVisible && popoverWin) { popoverWin.hide(); popoverVisible = false; } openDashboard(); },
-  quit: () => process.exit(0),
+  quit: () => { quitting = true; process.exit(0); },
 });
 
 ensurePopover(); // keep a (hidden) window alive so closing things never quits the app
