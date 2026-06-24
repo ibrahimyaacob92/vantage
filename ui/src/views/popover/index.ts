@@ -116,6 +116,8 @@ async function tick() {
 }
 
 document.getElementById("settings")!.addEventListener("click", () => appSettings());
+// Resize the popover when the legend collapses/expands.
+document.getElementById("legend")?.addEventListener("toggle", () => reportSize());
 
 // Enter/exit animation: replay on each focus (popover shown), play out on blur.
 function animateIn() {
