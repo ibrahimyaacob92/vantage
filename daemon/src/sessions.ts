@@ -31,6 +31,15 @@ export class SessionStore {
     return stored;
   }
 
+  markStatus(id: string, status: import("./types").ClaudeStatus, now: number): void {
+    const s = this.sessions.get(id);
+    if (!s) return;
+    const next = { ...s, status, lastEventAt: now, lastEvent: "watchdog" };
+    this.sessions.set(id, next);
+    if (status === "gone") this.goneAt.set(id, now);
+    this.mirror();
+  }
+
   removeGone(now: number, graceMs: number): void {
     for (const [id, at] of this.goneAt) {
       if (now - at >= graceMs) { this.sessions.delete(id); this.goneAt.delete(id); }
