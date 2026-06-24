@@ -37,10 +37,24 @@
       button:disabled { opacity: .4; cursor: default; }
       footer { display:flex; gap:8px; padding-top: 4px; }
       footer button { flex: 1; }
+      .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px;
+                padding: 8px 4px 10px; margin-top: 2px; border-top: 1px solid var(--line); }
+      .legend .li { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+      .legend .ld { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+      .legend h3 { grid-column: 1 / -1; margin: 0 0 2px; font-size: 10px; text-transform: uppercase;
+                   letter-spacing: .5px; color: var(--muted); }
     </style>
   </head>
   <body>
     <div id="list"><div class="empty">loading…</div></div>
+    <div class="legend">
+      <h3>What the dots mean</h3>
+      <div class="li"><span class="ld" style="background:#ff453a"></span>needs you</div>
+      <div class="li"><span class="ld" style="background:#ffd60a"></span>working</div>
+      <div class="li"><span class="ld" style="background:#0a84ff"></span>idle</div>
+      <div class="li"><span class="ld" style="background:#bf5af0"></span>compacting</div>
+      <div class="li"><span class="ld" style="background:#8e8e93"></span>no session</div>
+    </div>
     <footer>
       <button id="settings">Settings…</button>
       <button id="quit">Quit</button>
