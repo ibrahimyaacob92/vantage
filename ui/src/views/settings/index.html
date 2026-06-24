@@ -5,49 +5,54 @@
     <title>projflow</title>
     <style>
       :root {
-        --bg: #ffffff; --panel: #f6f6f8; --line: #e7e7ec; --text: #1d1d1f;
-        --muted: #86868b; --accent: #0a84ff; --chip: #ececf1;
+        --bg: #ffffff; --panel: #f5f5f7; --card: #ffffff; --line: #e6e6eb; --text: #1d1d1f;
+        --muted: #86868b; --accent: #0a84ff; --chip: #eeeef2; --field: #ffffff;
       }
       @media (prefers-color-scheme: dark) {
-        :root { --bg: #1e1e20; --panel: #2a2a2d; --line: #3a3a3e; --text: #f2f2f4;
-                --muted: #9a9aa0; --accent: #0a84ff; --chip: #3a3a3e; }
+        :root { --bg: #1e1e20; --panel: #262629; --card: #2c2c2e; --line: #3a3a3e; --text: #f2f2f4;
+                --muted: #9a9aa0; --accent: #0a84ff; --chip: #3a3a3e; --field: #1c1c1e; }
       }
       * { box-sizing: border-box; }
       body { font: 13px/1.45 -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; color: var(--text); background: var(--bg); }
-      header { padding: 16px 18px 12px; }
-      h1 { font-size: 16px; font-weight: 700; margin: 0; letter-spacing: -.2px; }
-      .tagline { color: var(--muted); font-size: 12px; margin-top: 2px; }
+      header { padding: 18px 20px 14px; }
+      h1 { font-size: 17px; font-weight: 700; margin: 0; letter-spacing: -.3px; }
+      .tagline { color: var(--muted); font-size: 12px; margin-top: 3px; }
+      section { padding: 0 20px 16px; }
+      h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 16px 0 9px; }
 
-      .barwrap { padding: 12px 18px; background: var(--panel); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-      .barlabel { font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 4px; }
-      #bar { font-size: 17px; letter-spacing: .5px; }
+      .preview { background: #2f3a52; border-radius: 10px; padding: 10px 14px; display: flex; gap: 16px; align-items: center; min-height: 40px; }
+      .ptile { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+      .ptile .pc { color: #fff; font-size: 9px; font-weight: 600; letter-spacing: .4px; }
+      .ptile .pd { display: flex; gap: 3px; }
+      .ptile .pdot { width: 5px; height: 5px; border-radius: 50%; }
+      .preview .none { color: #aab; font-size: 11px; }
 
-      section { padding: 14px 18px; }
-      h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 0 0 10px; }
-
-      .card { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-      .proj { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-top: 1px solid var(--line); }
-      .proj:first-child { border-top: none; }
-      .dot { font-size: 15px; line-height: 1; }
-      .pname { font-weight: 600; }
-      .pdet { color: var(--muted); font-size: 11.5px; }
+      .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+      .row { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-top: 1px solid var(--line); }
+      .row:first-child { border-top: none; }
+      .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+      .nm { font-weight: 600; }
+      .code { font-size: 10px; color: var(--muted); font-weight: 700; letter-spacing: .5px; background: var(--chip); padding: 1px 5px; border-radius: 4px; }
+      .path { color: var(--muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .spacer { flex: 1; }
       .chip { font-size: 10.5px; color: var(--text); background: var(--chip); border-radius: 5px; padding: 2px 7px; font-variant-numeric: tabular-nums; }
-      .empty { color: var(--muted); font-size: 12px; padding: 14px 12px; text-align: center; }
-      .del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 4px 6px; border-radius: 6px; }
-      .del:hover { color: #ff453a; background: rgba(255,69,58,.12); }
+      .st { font-size: 11px; color: var(--muted); }
+      .remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 12px; padding: 5px 8px; border-radius: 6px; }
+      .remove:hover { color: #ff453a; background: rgba(255,69,58,.12); }
+      .empty { color: var(--muted); font-size: 12px; padding: 16px; text-align: center; }
 
-      form { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-      .field { display: flex; flex-direction: column; gap: 3px; }
-      .field.full { grid-column: 1 / -1; }
-      label { font-size: 10.5px; color: var(--muted); }
-      .pathrow { display: flex; gap: 6px; }
-      input { font: inherit; padding: 7px 9px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); width: 100%; }
-      input:focus { outline: none; border-color: var(--accent); }
-      button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); padding: 7px 12px; }
-      button:hover { background: var(--panel); }
-      .browse { white-space: nowrap; }
-      .add { grid-column: 1 / -1; background: var(--accent); color: #fff; border: none; font-weight: 600; padding: 9px; }
+      form { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+      .f { display: flex; flex-direction: column; gap: 4px; }
+      .f.full { grid-column: 1 / -1; }
+      label { font-size: 10.5px; color: var(--muted); font-weight: 500; }
+      .pathrow { display: flex; gap: 7px; }
+      input { font: inherit; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); color: var(--text); width: 100%; }
+      input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(10,132,255,.15); }
+      input::placeholder { color: var(--muted); opacity: .7; }
+      button { font: inherit; cursor: pointer; border-radius: 8px; }
+      .browse { white-space: nowrap; border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 8px 12px; }
+      .browse:hover { filter: brightness(.97); }
+      .add { grid-column: 1 / -1; background: var(--accent); color: #fff; border: none; font-weight: 600; padding: 10px; font-size: 13px; }
       .add:hover { filter: brightness(1.07); }
     </style>
   </head>
@@ -57,30 +62,30 @@
       <div class="tagline">which of your projects needs you, at a glance</div>
     </header>
 
-    <div class="barwrap">
-      <div class="barlabel">menu-bar signal</div>
-      <div id="bar">starting…</div>
-    </div>
-
     <section>
-      <h2>Live status</h2>
-      <div id="status" class="card"><div class="empty">loading…</div></div>
+      <h2>Menu bar preview</h2>
+      <div id="preview" class="preview"><span class="none">loading…</span></div>
     </section>
 
     <section>
       <h2>Projects</h2>
-      <div id="list" class="card"><div class="empty">no projects yet</div></div>
+      <div id="list" class="card"><div class="empty">loading…</div></div>
+    </section>
+
+    <section>
+      <h2>Add a project</h2>
       <form id="addform">
-        <div class="field full">
+        <div class="f full">
           <label>Project folder</label>
           <div class="pathrow">
             <input id="path" placeholder="/Users/you/dev/my-app" />
             <button type="button" id="browse" class="browse">Browse…</button>
           </div>
         </div>
-        <div class="field"><label>Name</label><input id="name" placeholder="my-app" /></div>
-        <div class="field"><label>Dev command</label><input id="cmd" placeholder="pnpm dev" /></div>
-        <div class="field"><label>Port (optional)</label><input id="port" placeholder="3000" /></div>
+        <div class="f"><label>Name</label><input id="name" placeholder="my-app" /></div>
+        <div class="f"><label>Code (4 letters)</label><input id="code" placeholder="MYAP" maxlength="4" /></div>
+        <div class="f"><label>Dev command</label><input id="cmd" placeholder="pnpm dev" /></div>
+        <div class="f"><label>Port (optional)</label><input id="port" placeholder="3000" /></div>
         <button type="submit" class="add">Add project</button>
       </form>
     </section>

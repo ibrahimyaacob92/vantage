@@ -5,6 +5,7 @@ export type ClaudeStatus =
 export interface Project {
   id: string;
   name: string;
+  code?: string;         // 4-letter menu-bar code (defaults to first 4 of name)
   path: string;          // absolute dir — the join key
   devCommand: string;
   port: number | null;
