@@ -6,6 +6,10 @@ At a glance, Vantage answers the question *"which of my projects needs me right 
 
 > Status: early, working, and **open source** — contributions welcome via pull request. macOS only.
 
+![Vantage — menu-bar tiles and the project popover](docs/assets/hero.png)
+
+> _Representative UI: the menu-bar tiles (`COLL`, `READ`) and the click-to-open popover._
+
 ---
 
 ## What it looks like
@@ -155,7 +159,7 @@ Useful env vars: `VANTAGE_PORT` (default 7777), `VANTAGE_DATA_DIR` (default `~/L
 
 ## Contributing
 
-PRs are very welcome. Good first areas:
+PRs are very welcome — see **[CONTRIBUTING.md](CONTRIBUTING.md)** for dev setup, the pre-PR checklist, and conventions. Good first areas:
 
 - **More agents** — ingest lifecycle events from Codex CLI or others into the daemon's state machine.
 - **More browsers** — add Brave/Edge (Chromium) and Safari support to detection/actions.
