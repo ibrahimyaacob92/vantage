@@ -19,7 +19,7 @@ signal** so the user stops hunting through windows.
 | Topic | Decision | Notes |
 |---|---|---|
 | Scope | **Full build, all 4 phases** | Sequenced in §8. |
-| UI shell | **Electrobun** (Bun + TypeScript, native macOS tray) | Replaces the spec's Tauri/Electron/SwiftBar. One Bun runtime end-to-end. |
+| UI shell | **Electrobun `1.18.1`** (stable; Bun + TypeScript, native macOS tray) | Replaces the spec's Tauri/Electron/SwiftBar. One Bun runtime end-to-end. Beta line `1.18.4-beta.x` exists; we pin stable. |
 | Daemon | **Bun + Hono** (`projd`) | Unchanged from `product-spect.md`. |
 | Dev servers | **Managed** (projd owns the `pnpm dev` child) + `lsof` polling as backup | Per spec §2.2 recommendation. |
 | Chrome control | **AppleScript** | Zero setup; per spec §2.3 recommendation. |
@@ -87,33 +87,49 @@ Color → status mapping (the headline status per project):
 | 🔵 blue | `idle` | alive, your turn |
 | ⚪ grey | `gone` | session ended |
 
-### 3.1 Dropdown (full detail + actions)
+### 3.1 Dropdown — a NATIVE tray menu (not a custom panel)
 
-One row per enabled project:
+Confirmed against Electrobun 1.18.1 `Tray` API: the dropdown is built with `tray.setMenu([...])`, i.e.
+a **native macOS menu** of items (label + `action`, `divider`, `submenu`, `enabled`/`checked`/`hidden`,
+`tooltip`). It is NOT an HTML panel, so the earlier mockup's side-by-side buttons become native menu
+items grouped per project:
 
 ```
-🔴 iris-web          ● :3000   ◉ tab
-   ⛔ waiting for permission · "Bash(rm…)"
-   [ Open ]  [ Stop dev ]  [ Focus editor ]
+🔴 iris-web · waiting for permission · :3000 · tab open     (disabled header)
+     Open
+     Stop dev
+     Focus editor
+  ────────────────
+🔴 docs-portal · error: rate_limit · :4321 · tab open       (disabled header)
+     Open
+     …
+  ────────────────
+  Settings…                                                  → opens webview window
 ```
 
-- Line 1: status dot + name · dev dot (`● :PORT` running / `○ stopped`) · browser dot (`◉` tab open / `○`).
-- Line 2: detail — *why* it needs you (tool name / error subtype) or what it's doing; session count if >1.
-- Actions adapt to state: dev stopped → **Start dev**; dev running → **Open** (focus existing Chrome
-  tab, else open one) + **Stop dev**; always **Focus editor**.
-- Footer: **Settings…** and a daemon-connection indicator.
+- Per project: a **disabled header item** carrying status + name + dev port + tab state + detail, then
+  its action items. Actions adapt to state: dev stopped → **Start dev**; dev running → **Open** (focus
+  existing Chrome tab, else open one) + **Stop dev**; always **Focus editor**.
+- Projects separated by `divider` items, urgency-sorted (matches the bar order).
+- Footer: **Settings…** (opens the webview window) and a daemon-connection indicator item.
+- Menu is regenerated from `GET /state` on `tray-clicked` (and refreshed while open).
+- A pixel-perfect custom dropdown (HTML, the original button mockup) would require a webview popover
+  window instead — **deferred**; the native menu is the v1 path.
 
 ### 3.2 Settings window (Electrobun webview)
 
 Registry CRUD: add project (pick folder, set `devCommand` / `port` / `url`), toggle `enabled`, delete,
 set daemon port, reinstall hooks.
 
-### 3.3 Electrobun rendering approach
+### 3.3 Electrobun rendering approach (verified against 1.18.1 `Tray` API)
 
-The inline row is rendered as **one menu-bar status item whose title is a composed attributed string**
-(all projects in one label), refreshed ~1s from `GET /state`. This gives the Stats-like inline look
-reliably. Independently-clickable per-project segments in the bar (separate native status items) are
-**out of scope** for v1; revisit only if per-project bar click targets are wanted later.
+- **Inline row** = `tray.setTitle("<composed string>")` — one menu-bar status item whose title is the
+  full A+B row, refreshed ~1s from `GET /state`. Confirmed `setTitle()` updates the bar text live.
+- **Dropdown** = `tray.setMenu([...])` — native menu, regenerated on the `tray-clicked` event (which
+  reports `action === ""` for a bar click vs the item's `action` for menu clicks). See §3.1.
+- **Settings** = a real Electrobun webview window (BrowserWindow), opened from the Settings… menu item.
+- Independently-clickable per-project *segments in the bar* (separate native status items) are **out of
+  scope** for v1; the whole row is one click target that opens the menu.
 
 **TCC / Automation note:** the first AppleScript Chrome control triggers a macOS Automation permission
 prompt that attaches to the host process. For dev we run `projd` standalone (prompt attaches to the
