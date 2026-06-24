@@ -24,11 +24,11 @@ export class SessionStore {
     const id = payload.session_id;
     const existing = this.sessions.get(id) ?? newSession(id, payload.cwd, now);
     const next = transition(existing, payload, now);
-    if (!next.projectId) next.projectId = resolveProjectId(payload.cwd, projects);
-    this.sessions.set(id, next);
-    if (next.status === "gone") this.goneAt.set(id, now); else this.goneAt.delete(id);
+    const stored = next.projectId ? next : { ...next, projectId: resolveProjectId(payload.cwd, projects) };
+    this.sessions.set(id, stored);
+    if (stored.status === "gone") this.goneAt.set(id, now); else this.goneAt.delete(id);
     this.mirror();
-    return next;
+    return stored;
   }
 
   removeGone(now: number, graceMs: number): void {
@@ -41,7 +41,7 @@ export class SessionStore {
   private mirror(): void {
     try {
       mkdirSync(dirname(this.filePath), { recursive: true });
-      Bun.write(this.filePath, JSON.stringify(this.all(), null, 2));
+      void Bun.write(this.filePath, JSON.stringify(this.all(), null, 2)).catch(() => {});
     } catch { /* mirror is best-effort; never block a hook */ }
   }
 }
