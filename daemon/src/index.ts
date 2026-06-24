@@ -72,6 +72,13 @@ app.post("/actions/chrome/refresh", async (c) => {
   return c.json({ ok: true });
 });
 
+// App-level actions the menu-bar UI triggers (wired by the host app, since the
+// daemon runs in-process with it). No-ops if the host hasn't registered them.
+let appActions: { openSettings?: () => void; quit?: () => void } = {};
+export function setAppActions(a: { openSettings?: () => void; quit?: () => void }) { appActions = a; }
+app.post("/actions/app/settings", (c) => { appActions.openSettings?.(); return c.json({ ok: true }); });
+app.post("/actions/app/quit", (c) => { appActions.quit?.(); return c.json({ ok: true }); });
+
 // Native macOS folder picker (used by the dashboard's "Browse…" button).
 // Runs the system "choose folder" dialog and returns its POSIX path, or
 // { canceled: true } if the user dismisses it. Never throws upstream.
@@ -90,6 +97,53 @@ app.post("/actions/pick-folder", async (c) => {
   } catch {
     return c.json({ canceled: true });
   }
+});
+
+// Open/focus the project in the user's editor. Tries Cursor, then VS Code, then
+// a plain open. Uses absolute `open` (always on a GUI app's PATH).
+app.post("/actions/editor/focus", async (c) => {
+  let id = "";
+  try { id = ((await c.req.json()) as any).projectId; } catch {}
+  const p = registry.get(id);
+  if (!p) return c.json({ error: "not found" }, 404);
+  for (const appName of ["Cursor", "Visual Studio Code"]) {
+    const r = await Bun.$`open -a ${appName} ${p.path}`.quiet().nothrow();
+    if (r.exitCode === 0) return c.json({ ok: true, opened: appName });
+  }
+  await Bun.$`open ${p.path}`.quiet().nothrow();
+  return c.json({ ok: true, opened: "default" });
+});
+
+// Focus an existing Chrome tab for the project's URL, else open a new one.
+app.post("/actions/browser/open", async (c) => {
+  let id = "";
+  try { id = ((await c.req.json()) as any).projectId; } catch {}
+  const p = registry.get(id);
+  if (!p) return c.json({ error: "not found" }, 404);
+  const dev = detection.getDev(p.id);
+  const url = p.url || (p.port ? `http://localhost:${p.port}` : dev.port ? `http://localhost:${dev.port}` : null);
+  if (!url) return c.json({ error: "no url/port for project" }, 400);
+  const needle = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  const script = [
+    'tell application "Google Chrome"',
+    "  set found to false",
+    "  repeat with w in windows",
+    "    set i to 0",
+    "    repeat with t in tabs of w",
+    "      set i to i + 1",
+    `      if (URL of t) contains "${needle}" then`,
+    "        set active tab index of w to i",
+    "        set index of w to 1",
+    "        set found to true",
+    "      end if",
+    "    end repeat",
+    "  end repeat",
+    "  if not found then open location " + JSON.stringify(url),
+    "  activate",
+    "end tell",
+  ].join("\n");
+  await Bun.$`osascript -e ${script}`.quiet().nothrow();
+  return c.json({ ok: true, url });
 });
 
 /**
