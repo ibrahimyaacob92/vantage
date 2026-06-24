@@ -259,6 +259,9 @@ export async function startDaemon(): Promise<boolean> {
   }
   await registry.load();
   await store.load();
+  // Self-install Claude Code hooks on first run so a freshly-installed app
+  // actually receives session events (idempotent; preserves existing hooks).
+  try { const { ensureHooksInstalled } = await import("../hooks/install"); await ensureHooksInstalled(config.port); } catch { /* non-fatal */ }
   const { startWatchdog } = await import("./watchdog");
   startWatchdog(store);
   new PortDetector(detection, realPortDeps).start(() => registry.list(), 4000);

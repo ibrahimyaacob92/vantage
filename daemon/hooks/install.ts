@@ -40,6 +40,25 @@ export function stripHooks(existing: any): any {
 
 const settingsPath = join(homedir(), ".claude", "settings.json");
 
+/** Idempotently ensure projflow's hooks are in ~/.claude/settings.json. Returns
+ *  true if it installed them now, false if already present (or on failure).
+ *  Safe to call on every launch — it preserves any existing user hooks. */
+export async function ensureHooksInstalled(port = Number(process.env.PROJFLOW_PORT ?? 7777)): Promise<boolean> {
+  try {
+    const f = Bun.file(settingsPath);
+    let existing: any = {};
+    if (await f.exists()) { try { existing = await f.json(); } catch { existing = {}; } }
+    const already = existing?.hooks && Object.values(existing.hooks).some(
+      (arr: any) => Array.isArray(arr) && arr.some(isProjflow),
+    );
+    if (already) return false;
+    const { mkdir } = await import("fs/promises");
+    await mkdir(join(homedir(), ".claude"), { recursive: true });
+    await Bun.write(settingsPath, JSON.stringify(mergeHooks(existing, `http://127.0.0.1:${port}/hook`), null, 2));
+    return true;
+  } catch { return false; }
+}
+
 if (import.meta.main) {
   const url = `http://127.0.0.1:${process.env.PROJFLOW_PORT ?? 7777}/hook`;
   const f = Bun.file(settingsPath);
