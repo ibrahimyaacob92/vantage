@@ -9,5 +9,5 @@ if (import.meta.main) {
   if (!(await f.exists())) { console.log("No settings.json; nothing to remove."); process.exit(0); }
   const existing = await f.json();
   await Bun.write(settingsPath, JSON.stringify(stripHooks(existing), null, 2));
-  console.log(`Removed projflow hooks from ${settingsPath}.`);
+  console.log(`Removed Vantage hooks from ${settingsPath}.`);
 }

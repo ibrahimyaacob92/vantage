@@ -18,7 +18,7 @@ function candidates(): string[] {
   return [
     join(import.meta.dir, "..", "bin", "barrender"),
     join(import.meta.dir, "..", "..", "native", "barrender"),
-    "/Applications/projflow.app/Contents/Resources/app/bin/barrender",
+    "/Applications/Vantage.app/Contents/Resources/app/bin/barrender",
   ];
 }
 
@@ -35,8 +35,8 @@ export async function renderBar(views: ProjectView[], dark: boolean): Promise<Ba
     return { code: code4(v), dots: sessions.map((s) => COLOR[(s.status as ClaudeStatus)] ?? "#8e8e93") };
   });
   const spec = { h: 22, scale: 2, fontSize: 9.5, fg: dark ? [1, 1, 1] : [0.11, 0.11, 0.12], tiles };
-  const specPath = "/tmp/projflow-bar-spec.json";
-  const pngPath = "/tmp/projflow-bar.png";
+  const specPath = "/tmp/Vantage-bar-spec.json";
+  const pngPath = "/tmp/Vantage-bar.png";
   try { await Bun.write(specPath, JSON.stringify(spec)); } catch { return null; }
 
   for (const bin of candidates()) {

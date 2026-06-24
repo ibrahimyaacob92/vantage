@@ -277,15 +277,21 @@ app.post("/actions/browser/close-tab", async (c) => {
  * start the watchdog + port detector. Returns true if this process now owns
  * the daemon, or false if the port is already taken (another daemon is running
  * — callers should just use it over HTTP). Safe to call from the menu-bar app
- * so projflow runs as a single program.
+ * so Vantage runs as a single program.
  */
 export async function startDaemon(): Promise<boolean> {
   try {
     Bun.serve({ port: config.port, hostname: "127.0.0.1", fetch: app.fetch });
   } catch {
-    console.log(`projd: port ${config.port} in use — using the existing daemon`);
+    console.log(`vantage: port ${config.port} in use — using the existing daemon`);
     return false;
   }
+  // One-time migration from the old projflow data dir so users keep their projects.
+  try {
+    const { existsSync, renameSync } = await import("fs");
+    const { legacyDataDir } = await import("./config");
+    if (!existsSync(config.dataDir) && existsSync(legacyDataDir)) renameSync(legacyDataDir, config.dataDir);
+  } catch { /* non-fatal */ }
   await registry.load();
   await store.load();
   // Self-install Claude Code hooks on first run so a freshly-installed app
@@ -294,7 +300,7 @@ export async function startDaemon(): Promise<boolean> {
   const { startWatchdog } = await import("./watchdog");
   startWatchdog(store);
   new PortDetector(detection, realPortDeps).start(() => registry.list(), 4000);
-  console.log(`projd listening on http://127.0.0.1:${config.port}`);
+  console.log(`Vantage daemon listening on http://127.0.0.1:${config.port}`);
   return true;
 }
 

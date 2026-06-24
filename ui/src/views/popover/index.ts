@@ -28,7 +28,8 @@ function reportSize() {
   requestAnimationFrame(() => {
     const root = document.getElementById("root");
     if (!root) return;
-    const h = Math.ceil(root.getBoundingClientRect().height) + 20 + 6;
+    // root height + body padding (14*2) + small buffer for the shadow/rounding.
+    const h = Math.ceil(root.getBoundingClientRect().height) + 28 + 4;
     if (h > 0 && Math.abs(h - lastH) > 1) { lastH = h; setPopoverSize(h); }
   });
 }
@@ -46,10 +47,7 @@ function tabsSection(projectId: string): HTMLElement {
     row.append(u, x);
     wrap.appendChild(row);
   }
-  if (!tabs.length) { const none = document.createElement("div"); none.className = "notabs"; none.textContent = "No tabs open."; wrap.appendChild(none); }
-  const nt = document.createElement("button"); nt.className = "newtab"; nt.textContent = "＋ Open new tab";
-  nt.onclick = async () => { await openBrowser(projectId); await refreshTabs(projectId); };
-  wrap.appendChild(nt);
+  if (!tabs.length) { const none = document.createElement("div"); none.className = "notabs"; none.textContent = "No tabs open — use +port to open one."; wrap.appendChild(none); }
   return wrap;
 }
 
@@ -69,7 +67,13 @@ function render() {
     const code = document.createElement("span"); code.className = "code"; code.textContent = code4(v.project);
     const spacer = document.createElement("span"); spacer.className = "spacer";
     top.append(name, code, spacer);
-    if (v.dev?.running && v.dev.port) { const c = document.createElement("span"); c.className = "chip"; c.textContent = ":" + v.dev.port; top.append(c); }
+    const port = v.dev?.port || (v.project as any).port;
+    if (port) {
+      const pb = document.createElement("button"); pb.className = "portbtn";
+      pb.textContent = "+" + port; pb.title = "Open a new tab in the browser";
+      pb.onclick = async () => { await openBrowser(id); await refreshTabs(id); };
+      top.append(pb);
+    }
     const edBtn = document.createElement("button"); edBtn.className = "iconbtn"; edBtn.title = "Open in editor";
     edBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>';
     edBtn.onclick = () => focusEditor(id);

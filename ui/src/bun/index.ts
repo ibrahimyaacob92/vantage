@@ -3,8 +3,8 @@ import { fetchState, refreshChrome } from "./api";
 import { renderBar } from "./barimage";
 import { startDaemon, setAppActions } from "../../../daemon/src/index";
 
-// Run projflow as a single program: start the daemon in-process.
-try { await startDaemon(); } catch (e) { console.error("projflow: daemon start failed", e); }
+// Run Vantage as a single program: start the daemon in-process.
+try { await startDaemon(); } catch (e) { console.error("Vantage: daemon start failed", e); }
 
 // macOS draws menu-bar glyphs white whenever the bar is dark (Dark mode, or a
 // dark wallpaper in Light mode) — the common case. Default to white glyphs.
@@ -13,7 +13,7 @@ const dark = true;
 let latest = await fetchState();
 const first = await renderBar(latest, dark);
 const tray = new Tray(
-  first ? { image: first.pngPath, template: false, width: first.width, height: 22 } : { title: "projflow" },
+  first ? { image: first.pngPath, template: false, width: first.width, height: 22 } : { title: "Vantage" },
 );
 
 let lastSig = "";
@@ -31,7 +31,7 @@ let dashboardWin: BrowserWindow | null = null;
 function openDashboard() {
   if (dashboardWin) { dashboardWin.focus(); return; }
   dashboardWin = new BrowserWindow({
-    title: "projflow · Settings",
+    title: "Vantage · Settings",
     url: "views://settings/index.html",
     frame: { width: 540, height: 560, x: 220, y: 120 },
   });
@@ -48,10 +48,11 @@ function ensurePopover() {
   let x = 320, y = 28;
   try { const b = tray.getBounds(); if (b && b.x) x = Math.max(8, Math.round(b.x) - 170); } catch {}
   popoverWin = new BrowserWindow({
-    title: "projflow",
+    title: "Vantage",
     url: "views://popover/index.html",
     frame: { width: 340, height: 440, x, y },
     titleBarStyle: "hidden",   // borderless: no title bar, no close button to accidentally kill the app
+    transparent: true,         // so the rounded panel corners show (desktop behind)
     hidden: true,              // start hidden (no flash); toggled by the tray
   } as any);
   popoverVisible = false;
@@ -94,7 +95,7 @@ function flashOverlay(b: { x: number; y: number; w: number; h: number } | null) 
   try { overlayWin?.close(); } catch {}
   if (overlayTimer) clearTimeout(overlayTimer);
   overlayWin = new BrowserWindow({
-    title: "projflow-flash",
+    title: "Vantage-flash",
     url: "views://overlay/index.html",
     frame: { width: Math.round(b.w), height: Math.round(b.h), x: Math.round(b.x), y: Math.round(b.y) },
     titleBarStyle: "hidden", transparent: true, passthrough: true, activate: false,

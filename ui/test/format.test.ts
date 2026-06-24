@@ -19,7 +19,7 @@ test("formatBarTitle renders B summary + A per-project row", () => {
 });
 
 test("formatBarTitle with no projects shows the app name", () => {
-  expect(formatBarTitle([])).toBe("projflow");
+  expect(formatBarTitle([])).toBe("Vantage");
 });
 
 test("buildTrayMenu has a disabled header per project, a divider, Settings and Quit", () => {

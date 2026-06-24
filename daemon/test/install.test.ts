@@ -1,30 +1,30 @@
 import { test, expect } from "bun:test";
 import { mergeHooks, stripHooks, HOOK_EVENTS } from "../hooks/install";
 
-test("merge adds all events as projflow-tagged http hooks", () => {
+test("merge adds all events as vantage-tagged http hooks", () => {
   const out = mergeHooks({}, "http://127.0.0.1:7777/hook");
   for (const ev of HOOK_EVENTS) {
     const entry = out.hooks[ev][0];
-    expect(entry.description).toStartWith("projflow:");
+    expect(entry.description).toStartWith("vantage:");
     expect(entry.hooks[0]).toMatchObject({ type: "http", url: "http://127.0.0.1:7777/hook" });
   }
 });
 
-test("merge preserves existing non-projflow hooks", () => {
+test("merge preserves existing non-vantage hooks", () => {
   const existing = { hooks: { Stop: [{ matcher: "", hooks: [{ type: "command", command: "echo hi" }] }] } };
   const out = mergeHooks(existing, "http://127.0.0.1:7777/hook");
   const stopEntries = out.hooks.Stop;
   expect(stopEntries.some((e: any) => e.hooks[0].type === "command")).toBe(true);   // kept
-  expect(stopEntries.some((e: any) => e.description?.startsWith("projflow:"))).toBe(true); // added
+  expect(stopEntries.some((e: any) => e.description?.startsWith("vantage:"))).toBe(true); // added
 });
 
-test("merge is idempotent — re-running does not duplicate projflow entries", () => {
+test("merge is idempotent — re-running does not duplicate vantage entries", () => {
   const once = mergeHooks({}, "http://127.0.0.1:7777/hook");
   const twice = mergeHooks(once, "http://127.0.0.1:7777/hook");
-  expect(twice.hooks.Stop.filter((e: any) => e.description?.startsWith("projflow:")).length).toBe(1);
+  expect(twice.hooks.Stop.filter((e: any) => e.description?.startsWith("vantage:")).length).toBe(1);
 });
 
-test("strip removes only projflow entries, keeps the rest", () => {
+test("strip removes only vantage entries, keeps the rest", () => {
   const existing = { hooks: { Stop: [{ matcher: "", hooks: [{ type: "command", command: "echo hi" }] }] } };
   const merged = mergeHooks(existing, "http://127.0.0.1:7777/hook");
   const stripped = stripHooks(merged);

@@ -1,5 +1,5 @@
 {
-  "name": "projd",
+  "name": "vantage-daemon",
   "module": "src/index.ts",
   "type": "module",
   "scripts": {

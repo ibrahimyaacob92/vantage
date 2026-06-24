@@ -31,7 +31,7 @@ export function sortViews(views: ProjectView[]): ProjectView[] {
 }
 
 export function formatBarTitle(views: ProjectView[]): string {
-  if (views.length === 0) return "projflow";
+  if (views.length === 0) return "Vantage";
   const needs = views.filter((v) => v.claude.needsAttention).length;
   const working = views.filter((v) => v.claude.headline === "working" || v.claude.headline === "compacting").length;
   const idle = views.filter((v) => v.claude.headline === "idle" || v.claude.headline === "gone").length;
@@ -50,6 +50,6 @@ export function buildTrayMenu(views: ProjectView[]): MenuItemConfig[] {
   }
   menu.push({ type: "divider" });
   menu.push({ label: "Settings…", action: "settings" });
-  menu.push({ label: "Quit projflow", action: "quit" });
+  menu.push({ label: "Quit Vantage", action: "quit" });
   return menu;
 }
