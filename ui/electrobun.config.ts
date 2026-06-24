@@ -1,5 +1,8 @@
 import type { ElectrobunConfig } from "electrobun/bun";
 
+// Signed/notarized DMG only when RELEASE=1 (keeps normal dev builds fast/unsigned).
+const RELEASE = process.env.RELEASE === "1";
+
 const config: ElectrobunConfig = {
   app: { name: "projflow", identifier: "sh.projflow.app", version: "0.1.0" },
   build: {
@@ -13,6 +16,12 @@ const config: ElectrobunConfig = {
       "src/views/popover/index.html": "views/popover/index.html",
       "src/views/overlay/index.html": "views/overlay/index.html",
       "native/barrender": "bin/barrender",
+    },
+    mac: {
+      codesign: RELEASE,
+      notarize: RELEASE,
+      createDmg: RELEASE,
+      icons: "icon.iconset",
     },
   },
 };
