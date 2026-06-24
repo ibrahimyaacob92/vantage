@@ -4,7 +4,10 @@ export type ClaudeStatus =
 
 export interface ProjectView {
   project: { id: string; name: string; port: number | null; url: string | null };
-  claude: { count: number; headline: ClaudeStatus; needsAttention: boolean; sessions: unknown[] };
+  claude: {
+    count: number; headline: ClaudeStatus; needsAttention: boolean;
+    sessions: { sessionId: string; status: ClaudeStatus; detail: string | null }[];
+  };
   dev: { running: boolean; port: number | null; pid: number | null; managed: boolean };
   browser: { tabOpen: boolean; ref: unknown };
 }

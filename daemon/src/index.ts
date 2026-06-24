@@ -57,13 +57,29 @@ app.post("/actions/chrome/refresh", async (c) => {
   return c.json({ ok: true });
 });
 
-if (import.meta.main) {
+/**
+ * Boot the daemon in the current process: bind the HTTP server, load state,
+ * start the watchdog + port detector. Returns true if this process now owns
+ * the daemon, or false if the port is already taken (another daemon is running
+ * — callers should just use it over HTTP). Safe to call from the menu-bar app
+ * so projflow runs as a single program.
+ */
+export async function startDaemon(): Promise<boolean> {
+  try {
+    Bun.serve({ port: config.port, hostname: "127.0.0.1", fetch: app.fetch });
+  } catch {
+    console.log(`projd: port ${config.port} in use — using the existing daemon`);
+    return false;
+  }
   await registry.load();
   await store.load();
   const { startWatchdog } = await import("./watchdog");
   startWatchdog(store);
-  const portDetector = new PortDetector(detection, realPortDeps);
-  portDetector.start(() => registry.list(), 4000);
-  Bun.serve({ port: config.port, hostname: "127.0.0.1", fetch: app.fetch });
+  new PortDetector(detection, realPortDeps).start(() => registry.list(), 4000);
   console.log(`projd listening on http://127.0.0.1:${config.port}`);
+  return true;
+}
+
+if (import.meta.main) {
+  await startDaemon();
 }
