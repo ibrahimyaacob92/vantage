@@ -187,7 +187,7 @@ app.post("/actions/browser/open", async (c) => {
     "    set i to 0",
     "    repeat with t in tabs of w",
     "      set i to i + 1",
-    `      if (URL of t) contains "${needle}" then`,
+    `      if (URL of t) contains ${JSON.stringify(needle)} then`,
     "        set active tab index of w to i",
     "        set index of w to 1",
     "        set found to true",

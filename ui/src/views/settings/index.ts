@@ -128,14 +128,22 @@ byId("addform").addEventListener("submit", async (e) => {
   if (!name || !path) return;
   const port = el("port").value ? Number(el("port").value) : null;
   const code = (el("code").value.trim() || name).replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase();
+  // NOTE: do NOT include `enabled` here — on edit it would clobber the project's
+  // visibility (a hidden project would be un-hidden by any save).
   const fields = {
     name, code, path, devCommand: el("cmd").value.trim() || "pnpm dev",
-    port, url: port ? `http://localhost:${port}` : null, enabled: true,
+    port, url: port ? `http://localhost:${port}` : null,
   };
   if (editingId) {
     await updateProject(editingId, fields);
   } else {
-    await createProject({ id: name.toLowerCase().replace(/[^a-z0-9]+/g, "-"), ...fields });
+    // Derive a unique id so a name that normalizes to an existing id doesn't
+    // silently overwrite that project.
+    const base = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "project";
+    const existing = new Set((await listProjects()).map((p: any) => p.id));
+    let id = base, n = 2;
+    while (existing.has(id)) id = `${base}-${n++}`;
+    await createProject({ id, ...fields, enabled: true });
   }
   resetForm();
   renderList(); renderStatus();

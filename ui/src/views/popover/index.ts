@@ -101,13 +101,18 @@ async function refreshTabs(id: string) {
   render();
 }
 
+let ticking = false;
 async function tick() {
-  views = await fetchState();
-  await Promise.all(views.filter((v) => v.project.enabled !== false && hasBrowser(v)).map(async (v) => {
-    const r = await browserTabs(v.project.id);
-    tabsCache.set(v.project.id, r.tabs);
-  }));
-  render();
+  if (ticking) return; // skip if the previous tick (slow AppleScript) is still running
+  ticking = true;
+  try {
+    views = await fetchState();
+    await Promise.all(views.filter((v) => v.project.enabled !== false && hasBrowser(v)).map(async (v) => {
+      const r = await browserTabs(v.project.id);
+      tabsCache.set(v.project.id, r.tabs);
+    }));
+    render();
+  } finally { ticking = false; }
 }
 
 document.getElementById("settings")!.addEventListener("click", () => appSettings());

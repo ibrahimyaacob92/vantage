@@ -24,6 +24,9 @@ function candidates(): string[] {
 
 export interface BarRender { pngPath: string; width: number; }
 
+// chmod the renderer binary only once per path (not on every render).
+const chmodded = new Set<string>();
+
 /** Render the menu-bar tiles to a crisp @2x PNG via the native (CoreText) helper.
  *  Returns the PNG path + logical width, or null if rendering failed. */
 export async function renderBar(views: ProjectView[], dark: boolean): Promise<BarRender | null> {
@@ -41,7 +44,7 @@ export async function renderBar(views: ProjectView[], dark: boolean): Promise<Ba
 
   for (const bin of candidates()) {
     try {
-      await Bun.$`chmod +x ${bin}`.quiet().nothrow();
+      if (!chmodded.has(bin)) { await Bun.$`chmod +x ${bin}`.quiet().nothrow(); chmodded.add(bin); }
       const proc = Bun.spawn([bin, specPath, pngPath], { stdout: "pipe", stderr: "ignore" });
       const out = await new Response(proc.stdout).text();
       if ((await proc.exited) === 0) {
