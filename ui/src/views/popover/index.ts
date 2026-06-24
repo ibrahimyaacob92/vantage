@@ -28,7 +28,7 @@ function reportSize() {
   requestAnimationFrame(() => {
     const root = document.getElementById("root");
     if (!root) return;
-    const h = Math.ceil(root.getBoundingClientRect().height) + 20 + 6; // body padding + buffer
+    const h = Math.ceil(root.getBoundingClientRect().height) + 14 + 6; // body padding (top 2 + bottom 12) + buffer
     if (h > 0 && Math.abs(h - lastH) > 1) { lastH = h; setPopoverSize(h); }
   });
 }

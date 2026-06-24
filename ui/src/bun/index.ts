@@ -52,9 +52,12 @@ function ensurePopover() {
     url: "views://popover/index.html",
     frame: { width: 340, height: 440, x, y },
     titleBarStyle: "hidden",   // borderless: no title bar, no close button to accidentally kill the app
+    transparent: true,         // lets the rounded panel corners show (desktop behind the corners)
     hidden: true,              // start hidden (no flash); toggled by the tray
   } as any);
   popoverVisible = false;
+  // Click outside (lose focus) → hide, like a native menu-bar popover.
+  try { popoverWin.on("blur", () => { if (popoverVisible) { popoverWin!.hide(); popoverVisible = false; lastHideAt = Date.now(); } }); } catch {}
 }
 const POPOVER_W = 340;
 function positionPopover() {
@@ -66,15 +69,18 @@ function positionPopover() {
       // center the popover horizontally under the menu-bar tile
       const center = b.x + (b.width || 0) / 2;
       const x = Math.max(8, Math.round(center - POPOVER_W / 2));
-      popoverWin!.setPosition(x, 26);
+      popoverWin!.setPosition(x, 24);
       return;
     }
   } catch {}
-  popoverWin!.setPosition(200, 26);
+  popoverWin!.setPosition(200, 24);
 }
+let lastHideAt = 0;
 function togglePopover() {
   ensurePopover();
-  if (popoverVisible) { popoverWin!.hide(); popoverVisible = false; return; }
+  if (popoverVisible) { popoverWin!.hide(); popoverVisible = false; lastHideAt = Date.now(); return; }
+  // If a blur from THIS same tray click just hid it, don't immediately reopen.
+  if (Date.now() - lastHideAt < 250) return;
   void refreshChrome();
   positionPopover();
   popoverWin!.show();
