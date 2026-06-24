@@ -12,11 +12,25 @@ At a glance, Vantage answers the question *"which of my projects needs me right 
 
 ---
 
-## What it looks like
+## Screenshots
 
-- **Menu bar:** one small tile per visible project — `COLL ●●` — where the dots are colored by what each Claude session is doing.
-- **Popover (click the tile):** each project's live status, its open `localhost` browser tabs (focus/close/open), an "open editor" button, and a color legend.
-- **Settings:** add / edit / remove projects, set each project's 4‑letter code, toggle which projects appear in the menu bar, and enable "open at login".
+### Menu bar
+One small tile per visible project — `COLL ●●` — where the dots are colored by what each Claude session is doing.
+
+<!-- SCREENSHOT: a close crop of the macOS menu bar showing the Vantage tiles -->
+![Vantage menu-bar tiles](docs/assets/menubar.png)
+
+### Popover (click a tile)
+Each project's live status, its open `localhost` browser tabs (click to focus, ✕ to close, `+port` to open), an "open editor" button, and the color legend.
+
+<!-- SCREENSHOT: the popover open, ideally with a project that has browser tabs listed -->
+![Vantage popover](docs/assets/popover.png)
+
+### Settings
+Add / edit / remove projects, set each project's 4‑letter code, drag to reorder, toggle which projects appear in the menu bar, and enable "open at login".
+
+<!-- SCREENSHOT: the Settings window (the projects list + the add-a-project form) -->
+![Vantage settings](docs/assets/settings.png)
 
 ### What the dots mean
 
