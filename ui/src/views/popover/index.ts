@@ -118,5 +118,18 @@ async function tick() {
 document.getElementById("settings")!.addEventListener("click", () => appSettings());
 document.getElementById("quit")!.addEventListener("click", () => appQuit());
 
+// Enter/exit animation: replay on each focus (popover shown), play out on blur.
+function animateIn() {
+  const r = document.getElementById("root"); if (!r) return;
+  r.classList.remove("out", "in"); void r.offsetWidth; r.classList.add("in");
+}
+function animateOut() {
+  const r = document.getElementById("root"); if (!r) return;
+  r.classList.remove("in"); r.classList.add("out");
+}
+window.addEventListener("focus", animateIn);
+window.addEventListener("blur", animateOut);
+animateIn();
+
 tick();
 setInterval(tick, 2000);

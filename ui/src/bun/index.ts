@@ -56,8 +56,15 @@ function ensurePopover() {
     hidden: true,              // start hidden (no flash); toggled by the tray
   } as any);
   popoverVisible = false;
-  // Click outside (lose focus) → hide, like a native menu-bar popover.
-  try { popoverWin.on("blur", () => { if (popoverVisible) { popoverWin!.hide(); popoverVisible = false; lastHideAt = Date.now(); } }); } catch {}
+  // Click outside (lose focus) → hide, like a native menu-bar popover. Delay the
+  // actual hide briefly so the webview's exit animation can play.
+  try {
+    popoverWin.on("blur", () => {
+      if (!popoverVisible) return;
+      popoverVisible = false; lastHideAt = Date.now();
+      setTimeout(() => { try { popoverWin!.hide(); } catch {} }, 150);
+    });
+  } catch {}
 }
 const POPOVER_W = 340;
 function positionPopover() {

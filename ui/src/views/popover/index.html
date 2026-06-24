@@ -17,7 +17,13 @@
       body { font: 13px/1.4 -apple-system, BlinkMacSystemFont, sans-serif; color: var(--text);
              padding: 2px 12px 12px 12px; -webkit-user-select: none; background: transparent; }
       #root { background: var(--bg); border-radius: 14px; padding: 10px; overflow: hidden;
-              box-shadow: 0 8px 28px rgba(0,0,0,.30); }
+              box-shadow: 0 8px 28px rgba(0,0,0,.30); border: 0.5px solid rgba(255,255,255,.16);
+              backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%);
+              transform-origin: top center; }
+      @keyframes popIn  { from { opacity: 0; transform: translateY(-6px) scale(.985); } to { opacity: 1; transform: none; } }
+      @keyframes popOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-4px) scale(.99); } }
+      #root.in  { animation: popIn .15s cubic-bezier(.2,.8,.2,1) both; }
+      #root.out { animation: popOut .12s ease-in both; }
       .empty { color: var(--muted); text-align: center; padding: 24px 8px; font-size: 12px; }
       .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
               padding: 7px 10px; margin-bottom: 6px; }
