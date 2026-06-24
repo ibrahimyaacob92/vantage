@@ -32,7 +32,7 @@ export async function renderBar(views: ProjectView[], dark: boolean): Promise<Ba
     const sessions = v.claude.sessions.length ? v.claude.sessions : [{ status: v.claude.headline } as any];
     return { code: code4(v), dots: sessions.map((s) => COLOR[(s.status as ClaudeStatus)] ?? "#8e8e93") };
   });
-  const spec = { h: 22, scale: 2, fontSize: 8.5, fg: dark ? [1, 1, 1] : [0.11, 0.11, 0.12], tiles };
+  const spec = { h: 22, scale: 2, fontSize: 9.5, fg: dark ? [1, 1, 1] : [0.11, 0.11, 0.12], tiles };
   const specPath = "/tmp/projflow-bar-spec.json";
   const pngPath = "/tmp/projflow-bar.png";
   try { await Bun.write(specPath, JSON.stringify(spec)); } catch { return null; }

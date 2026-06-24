@@ -68,7 +68,7 @@ for l in layout {
   // bottom row: colored dots, centered under the tile
   let n = l.dots.count
   var dx = l.x + l.w / 2 - CGFloat(max(n - 1, 0)) * step / 2
-  let cy: CGFloat = 4.0
+  let cy: CGFloat = 4.6
   for c in l.dots {
     c.setFill()
     NSBezierPath(ovalIn: NSRect(x: dx - dotR, y: cy - dotR, width: 2 * dotR, height: 2 * dotR)).fill()
