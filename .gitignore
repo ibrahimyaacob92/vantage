@@ -5,3 +5,4 @@ dist/
 .superpowers/
 ui/build/
 ui/artifacts/
+ui/native/barrender

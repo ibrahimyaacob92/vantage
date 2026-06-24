@@ -1,6 +1,6 @@
 import { Tray, BrowserWindow, app } from "electrobun/bun";
 import { fetchState, refreshChrome } from "./api";
-import { buildBarSvg, renderBarPng } from "./barimage";
+import { renderBar } from "./barimage";
 import { startDaemon, setAppActions } from "../../../daemon/src/index";
 
 // Run projflow as a single program: start the daemon in-process.
@@ -11,10 +11,9 @@ try { await startDaemon(); } catch (e) { console.error("projflow: daemon start f
 const dark = true;
 
 let latest = await fetchState();
-const firstPng = await renderBarPng(latest, dark);
-const { width: firstW } = buildBarSvg(latest, dark);
+const first = await renderBar(latest, dark);
 const tray = new Tray(
-  firstPng ? { image: firstPng, template: false, width: firstW, height: 22 } : { title: "projflow" },
+  first ? { image: first.pngPath, template: false, width: first.width, height: 22 } : { title: "projflow" },
 );
 
 let lastSig = "";
@@ -23,8 +22,8 @@ async function updateBar() {
   const sig = JSON.stringify(latest.map((v) => [v.project.id, (v.project as any).code, v.claude.headline, v.claude.sessions.map((s) => s.status)]));
   if (sig === lastSig) return;
   lastSig = sig;
-  const png = await renderBarPng(latest, dark);
-  if (png) tray.setImage(png);
+  const r = await renderBar(latest, dark);
+  if (r) { tray.setImage(r.pngPath); }
 }
 
 // Full dashboard / settings window (project CRUD).

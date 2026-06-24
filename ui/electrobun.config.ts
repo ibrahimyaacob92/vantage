@@ -11,6 +11,7 @@ const config: ElectrobunConfig = {
     copy: {
       "src/views/settings/index.html": "views/settings/index.html",
       "src/views/popover/index.html": "views/popover/index.html",
+      "native/barrender": "bin/barrender",
     },
   },
 };
