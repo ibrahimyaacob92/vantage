@@ -42,3 +42,14 @@ test("sweep clears projects whose servers disappeared", async () => {
   await detector.sweep(projects);
   expect(store.getDev("iris").running).toBe(false);
 });
+
+test("sweep preserves a managed dev entry even when its socket is not listening", async () => {
+  const projects: Project[] = [
+    { id: "iris", name: "iris", path: "/Users/me/dev/iris-web", devCommand: "pnpm dev", port: 3000, url: null, enabled: true },
+  ];
+  const store = new DetectionStore();
+  store.setDev("iris", { running: true, port: 3000, pid: 42, managed: true });
+  const detector = new PortDetector(store, { listSockets: async () => "", pidCwd: async () => "" });
+  await detector.sweep(projects);
+  expect(store.getDev("iris")).toEqual({ running: true, port: 3000, pid: 42, managed: true });
+});

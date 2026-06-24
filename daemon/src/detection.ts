@@ -13,6 +13,12 @@ export class DetectionStore {
   setBrowser(id: string, info: BrowserInfo) { this.browser.set(id, info); }
   getBrowser(id: string): BrowserInfo { return this.browser.get(id) ?? { ...NO_BROWSER }; }
 
+  managedDevIds(): string[] {
+    const out: string[] = [];
+    for (const [id, info] of this.dev) if (info.managed) out.push(id);
+    return out;
+  }
+
   clearDevExcept(ids: string[]) {
     const keep = new Set(ids);
     for (const id of [...this.dev.keys()]) if (!keep.has(id)) this.dev.delete(id);

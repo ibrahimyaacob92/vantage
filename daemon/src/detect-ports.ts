@@ -50,7 +50,8 @@ export class PortDetector {
         seen.push(projectId);
       }
     } catch { /* lsof failed — treat as nothing listening */ }
-    this.store.clearDevExcept(seen);
+    // Always preserve managed entries (Phase 3 sets these); an lsof blip must not drop the flag.
+    this.store.clearDevExcept([...seen, ...this.store.managedDevIds()]);
   }
 
   start(getProjects: () => Project[], intervalMs = 4000) {
