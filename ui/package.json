@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "dev": "electrobun dev",
+    "build": "electrobun build",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "electrobun": "1.18.1"
+  }
+}
