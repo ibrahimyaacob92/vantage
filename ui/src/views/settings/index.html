@@ -63,6 +63,9 @@
       .browse:hover { filter: brightness(.97); }
       .add { grid-column: 1 / -1; background: var(--accent); color: #fff; border: none; font-weight: 600; padding: 10px; font-size: 13px; }
       .add:hover { filter: brightness(1.07); }
+      .quitrow { display: flex; justify-content: center; padding-top: 4px; padding-bottom: 22px; }
+      .quit { border: 1px solid var(--line); background: var(--card); color: var(--muted); padding: 7px 16px; font-size: 12px; }
+      .quit:hover { color: #ff453a; border-color: #ff453a; }
     </style>
   </head>
   <body>
@@ -101,6 +104,10 @@
           <button type="submit" id="submit" class="add" style="flex:1;">Add project</button>
         </div>
       </form>
+    </section>
+
+    <section class="quitrow">
+      <button type="button" id="quit" class="quit">Quit Vantage</button>
     </section>
 
     <script type="module" src="./index.js"></script>

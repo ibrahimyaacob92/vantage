@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { listProjects, createProject, updateProject, deleteProject, reorderProjects, fetchState, pickFolder, getLoginItem, setLoginItem } from "../../bun/api";
+import { listProjects, createProject, updateProject, deleteProject, reorderProjects, fetchState, pickFolder, getLoginItem, setLoginItem, appQuit } from "../../bun/api";
 
 // --- drag-and-drop reordering of the project list ---
 let dragEl: HTMLElement | null = null;
@@ -193,6 +193,8 @@ startup.addEventListener("change", async () => {
   const r = await getLoginItem();
   startup.checked = !!r.enabled;
 });
+
+byId("quit").addEventListener("click", () => appQuit());
 
 initDnd();
 renderList();

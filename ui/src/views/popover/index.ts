@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { fetchState, focusEditor, openBrowser, appSettings, appQuit, browserTabs, focusTab, closeTab, setPopoverSize, type ChromeTab } from "../../bun/api";
+import { fetchState, focusEditor, openBrowser, appSettings, browserTabs, focusTab, closeTab, setPopoverSize, type ChromeTab } from "../../bun/api";
 
 const COLOR: Record<string, string> = {
   blocked_permission: "#ff453a", error: "#ff453a", blocked_input: "#ff453a",
