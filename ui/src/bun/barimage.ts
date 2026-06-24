@@ -22,7 +22,8 @@ export function buildBarSvg(views: ProjectView[], dark: boolean): { svg: string;
   const H = 22;
   // Calibrated to match macOS menu-bar label size (e.g. Stats' "RAM").
   const FONT = `font-family="SF Pro Text, -apple-system, Helvetica" font-size="4.5" font-weight="500" letter-spacing="0.2"`;
-  const DOT_STEP = 4, DOT_R = 1.15;
+  const DOT_STEP = 3.4, DOT_R = 1.15;
+  const CODE_Y = 12, DOTS_Y = 15.6; // shifted lower, rows close together
   const parts: string[] = [];
   let x = 5;
 
@@ -33,16 +34,16 @@ export function buildBarSvg(views: ProjectView[], dark: boolean): { svg: string;
     const dotsW = Math.max((sessions.length - 1) * DOT_STEP + DOT_R * 2, DOT_R * 2);
     const tileW = Math.max(codeW, dotsW);
     // top row: code
-    parts.push(`<text x="${(x + tileW / 2).toFixed(1)}" y="8.5" ${FONT} text-anchor="middle" fill="${fg}">${esc(code)}</text>`);
-    // bottom row: dots, centered under the tile
+    parts.push(`<text x="${(x + tileW / 2).toFixed(1)}" y="${CODE_Y}" ${FONT} text-anchor="middle" fill="${fg}">${esc(code)}</text>`);
+    // bottom row: dots, centered under the tile, snug below the code
     let dx = x + tileW / 2 - ((sessions.length - 1) * DOT_STEP) / 2;
     for (const s of sessions) {
-      parts.push(`<circle cx="${dx.toFixed(1)}" cy="14" r="${DOT_R}" fill="${COLOR[(s.status as ClaudeStatus)] ?? "#8e8e93"}"/>`);
+      parts.push(`<circle cx="${dx.toFixed(1)}" cy="${DOTS_Y}" r="${DOT_R}" fill="${COLOR[(s.status as ClaudeStatus)] ?? "#8e8e93"}"/>`);
       dx += DOT_STEP;
     }
     x += tileW;
     if (i < sorted.length - 1) {
-      parts.push(`<rect x="${(x + 3).toFixed(1)}" y="6.5" width="0.6" height="9" rx="0.3" fill="${fg}" opacity="0.15"/>`);
+      parts.push(`<rect x="${(x + 3).toFixed(1)}" y="7" width="0.6" height="9" rx="0.3" fill="${fg}" opacity="0.15"/>`);
       x += 6;
     }
   });
