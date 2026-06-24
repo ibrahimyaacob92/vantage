@@ -86,9 +86,26 @@ function togglePopover() {
 let quitting = false;
 try { app.on("before-quit", () => ({ allow: quitting })); } catch {}
 
+// A brief white border drawn over the window that was just opened/focused.
+let overlayWin: BrowserWindow | null = null;
+let overlayTimer: ReturnType<typeof setTimeout> | null = null;
+function flashOverlay(b: { x: number; y: number; w: number; h: number } | null) {
+  if (!b || b.w < 20 || b.h < 20) return;
+  try { overlayWin?.close(); } catch {}
+  if (overlayTimer) clearTimeout(overlayTimer);
+  overlayWin = new BrowserWindow({
+    title: "projflow-flash",
+    url: "views://overlay/index.html",
+    frame: { width: Math.round(b.w), height: Math.round(b.h), x: Math.round(b.x), y: Math.round(b.y) },
+    titleBarStyle: "hidden", transparent: true, passthrough: true, activate: false,
+  } as any);
+  overlayTimer = setTimeout(() => { try { overlayWin?.close(); } catch {} overlayWin = null; }, 1050);
+}
+
 setAppActions({
   openSettings: () => { if (popoverVisible && popoverWin) { popoverWin.hide(); popoverVisible = false; } openDashboard(); },
   quit: () => { quitting = true; process.exit(0); },
+  flash: flashOverlay,
 });
 
 ensurePopover(); // keep a (hidden) window alive so closing things never quits the app

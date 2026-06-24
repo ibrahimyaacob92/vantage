@@ -74,8 +74,27 @@ app.post("/actions/chrome/refresh", async (c) => {
 
 // App-level actions the menu-bar UI triggers (wired by the host app, since the
 // daemon runs in-process with it). No-ops if the host hasn't registered them.
-let appActions: { openSettings?: () => void; quit?: () => void } = {};
-export function setAppActions(a: { openSettings?: () => void; quit?: () => void }) { appActions = a; }
+type WinBounds = { x: number; y: number; w: number; h: number };
+let appActions: { openSettings?: () => void; quit?: () => void; flash?: (b: WinBounds | null) => void } = {};
+export function setAppActions(a: typeof appActions) { appActions = a; }
+
+async function chromeBounds(): Promise<WinBounds | null> {
+  try {
+    const out = (await Bun.$`osascript -e ${'tell application "Google Chrome" to get bounds of front window'}`.quiet().nothrow()).stdout.toString().trim();
+    const n = out.split(",").map((s) => parseInt(s.trim(), 10));
+    if (n.length === 4 && n.every(Number.isFinite)) return { x: n[0], y: n[1], w: n[2] - n[0], h: n[3] - n[1] };
+  } catch { /* Chrome closed */ }
+  return null;
+}
+async function processBounds(proc: string): Promise<WinBounds | null> {
+  try {
+    const script = `tell application "System Events" to tell process "${proc}" to get {position, size} of front window`;
+    const out = (await Bun.$`osascript -e ${script}`.quiet().nothrow()).stdout.toString().trim();
+    const n = out.split(",").map((s) => parseInt(s.trim(), 10));
+    if (n.length === 4 && n.every(Number.isFinite)) return { x: n[0], y: n[1], w: n[2], h: n[3] };
+  } catch { /* needs Accessibility permission */ }
+  return null;
+}
 app.post("/actions/app/settings", (c) => { appActions.openSettings?.(); return c.json({ ok: true }); });
 app.post("/actions/app/quit", (c) => { appActions.quit?.(); return c.json({ ok: true }); });
 
@@ -106,12 +125,15 @@ app.post("/actions/editor/focus", async (c) => {
   try { id = ((await c.req.json()) as any).projectId; } catch {}
   const p = registry.get(id);
   if (!p) return c.json({ error: "not found" }, 404);
+  let opened = "default";
   for (const appName of ["Cursor", "Visual Studio Code"]) {
     const r = await Bun.$`open -a ${appName} ${p.path}`.quiet().nothrow();
-    if (r.exitCode === 0) return c.json({ ok: true, opened: appName });
+    if (r.exitCode === 0) { opened = appName; break; }
   }
-  await Bun.$`open ${p.path}`.quiet().nothrow();
-  return c.json({ ok: true, opened: "default" });
+  if (opened === "default") await Bun.$`open ${p.path}`.quiet().nothrow();
+  const proc = opened === "Visual Studio Code" ? "Code" : opened === "Cursor" ? "Cursor" : null;
+  if (proc) appActions.flash?.(await processBounds(proc));
+  return c.json({ ok: true, opened });
 });
 
 // Focus an existing Chrome tab for the project's URL, else open a new one.
@@ -143,6 +165,7 @@ app.post("/actions/browser/open", async (c) => {
     "end tell",
   ].join("\n");
   await Bun.$`osascript -e ${script}`.quiet().nothrow();
+  appActions.flash?.(await chromeBounds());
   return c.json({ ok: true, url });
 });
 
@@ -201,6 +224,7 @@ app.post("/actions/browser/focus-tab", async (c) => {
   try { tabId = String(((await c.req.json()) as any).tabId).replace(/[^0-9]/g, ""); } catch {}
   if (!tabId) return c.json({ error: "no tab" }, 400);
   await Bun.$`osascript -e ${tabActionScript(tabId, "focus")}`.quiet().nothrow();
+  appActions.flash?.(await chromeBounds());
   return c.json({ ok: true });
 });
 app.post("/actions/browser/close-tab", async (c) => {
