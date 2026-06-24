@@ -116,7 +116,6 @@ async function tick() {
 }
 
 document.getElementById("settings")!.addEventListener("click", () => appSettings());
-document.getElementById("quit")!.addEventListener("click", () => appQuit());
 
 // Enter/exit animation: replay on each focus (popover shown), play out on blur.
 function animateIn() {

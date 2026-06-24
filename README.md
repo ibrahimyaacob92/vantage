@@ -6,31 +6,19 @@ At a glance, Vantage answers the question *"which of my projects needs me right 
 
 > Status: early, working, and **open source** — contributions welcome via pull request. macOS only.
 
-![Vantage — menu-bar tiles and the project popover](docs/assets/hero.png)
-
-> _Representative UI: the menu-bar tiles (`COLL`, `READ`) and the click-to-open popover._
-
 ---
 
 ## Screenshots
 
-### Menu bar
-One small tile per visible project — `COLL ●●` — where the dots are colored by what each Claude session is doing.
+**Menu bar tiles + the click-to-open popover** — each project's live status, its open `localhost` browser tabs (click to focus, ✕ to close, `+port` to open), an "open editor" button, and the color legend.
 
-<!-- SCREENSHOT: a close crop of the macOS menu bar showing the Vantage tiles -->
-![Vantage menu-bar tiles](docs/assets/menubar.png)
+![Vantage menu-bar tiles and popover](docs/assets/popover.png)
 
-### Popover (click a tile)
-Each project's live status, its open `localhost` browser tabs (click to focus, ✕ to close, `+port` to open), an "open editor" button, and the color legend.
+**Settings** — add / edit / remove projects, set each project's 4‑letter code, drag to reorder, toggle which projects appear in the menu bar, and enable "open at login".
 
-<!-- SCREENSHOT: the popover open, ideally with a project that has browser tabs listed -->
-![Vantage popover](docs/assets/popover.png)
-
-### Settings
-Add / edit / remove projects, set each project's 4‑letter code, drag to reorder, toggle which projects appear in the menu bar, and enable "open at login".
-
-<!-- SCREENSHOT: the Settings window (the projects list + the add-a-project form) -->
 ![Vantage settings](docs/assets/settings.png)
+
+---
 
 ### What the dots mean
 
