@@ -4,7 +4,7 @@ import type { ElectrobunConfig } from "electrobun/bun";
 const RELEASE = process.env.RELEASE === "1";
 
 const config: ElectrobunConfig = {
-  app: { name: "Vantage", identifier: "sh.vantage.app", version: "0.1.0" },
+  app: { name: "Vantage", identifier: "sh.vantage.app", version: "0.1.1" },
   build: {
     bun: { entrypoint: "src/bun/index.ts" },
     views: {
