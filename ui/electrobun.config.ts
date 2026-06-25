@@ -24,6 +24,8 @@ const config: ElectrobunConfig = {
       icons: "icon.iconset",
     },
   },
-};
+  // Make the wrapper a menu-bar agent (no Dock icon) before signing.
+  scripts: { postWrap: "scripts/set-agent.ts" },
+} as ElectrobunConfig;
 
 export default config;
