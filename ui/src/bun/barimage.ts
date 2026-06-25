@@ -1,10 +1,15 @@
 import type { ProjectView, ClaudeStatus } from "./format";
 import { join } from "path";
 
-// Status → dot color in the rendered menu-bar tile.
-const COLOR: Record<ClaudeStatus, string> = {
+// Status → dot color. Bright on a dark bar; darker/saturated on a light bar
+// (bright yellow/green are nearly invisible on a light menu bar).
+const COLOR_DARK: Record<ClaudeStatus, string> = {
   blocked_permission: "#ff453a", error: "#ff453a", blocked_input: "#ff453a",
   compacting: "#bf5af0", working: "#ffd60a", idle: "#30d158", gone: "#8e8e93",
+};
+const COLOR_LIGHT: Record<ClaudeStatus, string> = {
+  blocked_permission: "#e0241a", error: "#e0241a", blocked_input: "#e0241a",
+  compacting: "#9938cc", working: "#cf8a00", idle: "#1aa34a", gone: "#6d6d72",
 };
 const PRIORITY: ClaudeStatus[] = [
   "blocked_permission", "error", "blocked_input", "compacting", "working", "idle", "gone",
@@ -32,9 +37,10 @@ const chmodded = new Set<string>();
 export async function renderBar(views: ProjectView[], dark: boolean): Promise<BarRender | null> {
   // Keep the user's manual order (registry order); just drop hidden projects.
   const sorted = views.filter((v) => (v.project as any).enabled !== false);
+  const COLOR = dark ? COLOR_DARK : COLOR_LIGHT;
   const tiles = sorted.map((v) => {
     const sessions = v.claude.sessions.length ? v.claude.sessions : [{ status: v.claude.headline } as any];
-    return { code: code4(v), dots: sessions.map((s) => COLOR[(s.status as ClaudeStatus)] ?? "#8e8e93") };
+    return { code: code4(v), dots: sessions.map((s) => COLOR[(s.status as ClaudeStatus)] ?? COLOR.gone) };
   });
   const spec = { h: 22, scale: 2, fontSize: 9.5, fg: dark ? [1, 1, 1] : [0.11, 0.11, 0.12], tiles };
   const specPath = "/tmp/Vantage-bar-spec.json";
