@@ -16,12 +16,7 @@ let outPath = args[2]
 let scale = CGFloat((spec["scale"] as? Double) ?? 2)
 let H = CGFloat((spec["h"] as? Double) ?? 22)
 let fontSize = CGFloat((spec["fontSize"] as? Double) ?? 6.5)
-let pad: CGFloat = 2, gap: CGFloat = 7
-let step: CGFloat = 4.6       // horizontal dot spacing
-let rowGap: CGFloat = 2.6     // vertical gap between dot rows
-let dotR: CGFloat = 1.7
-let gapCD: CGFloat = 1.6      // gap between the code and the dot grid
-let maxCols = 4, maxDots = 8  // dots wrap into a 4-col grid, up to 2 rows
+let pad: CGFloat = 2, gap: CGFloat = 7, step: CGFloat = 5.8, dotR: CGFloat = 2.2
 let fgArr0 = (spec["fg"] as? [Double]) ?? [1, 1, 1]
 let fgArr = fgArr0.count >= 3 ? fgArr0 : [1, 1, 1]
 let fg = NSColor(srgbRed: CGFloat(fgArr[0]), green: CGFloat(fgArr[1]), blue: CGFloat(fgArr[2]), alpha: 1)
@@ -45,28 +40,16 @@ func hex(_ s: String) -> NSColor {
 struct Tile { let code: String; let dots: [NSColor]; let x: CGFloat; let w: CGFloat }
 var layout: [Tile] = []
 var x = pad
-var maxRows = 1
 for t in tiles {
   let code = (t["code"] as? String) ?? "····"
-  let dots = Array(((t["dots"] as? [String]) ?? []).map(hex).prefix(maxDots))
-  let n = dots.count
-  let cols = min(max(n, 1), maxCols)
-  let rows = max(1, (n + maxCols - 1) / maxCols)
-  maxRows = max(maxRows, rows)
+  let dots = ((t["dots"] as? [String]) ?? []).map(hex)
   let codeW = (code as NSString).size(withAttributes: attrs).width
-  let gridW = CGFloat(cols - 1) * step + 2 * dotR
-  let w = max(codeW, gridW)
+  let dotsW = max(CGFloat(max(dots.count - 1, 0)) * step + 2 * dotR, 2 * dotR)
+  let w = max(codeW, dotsW)
   layout.append(Tile(code: code, dots: dots, x: x, w: w))
   x += w + gap
 }
 let W = max(x - gap + pad, 8)
-
-// Vertically centre the (code + dot grid) block, using a consistent height
-// (based on the max rows present) so codes line up across tiles.
-let blockH = fontSize + gapCD + (CGFloat(maxRows) * 2 * dotR + CGFloat(maxRows - 1) * rowGap)
-let topMargin = (H - blockH) / 2
-let codeTopY = H - topMargin            // Cocoa Y of the top of the code
-let dotsTopY = codeTopY - fontSize - gapCD
 
 let pxW = Int((W * scale).rounded()), pxH = Int((H * scale).rounded())
 guard let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: pxW, pixelsHigh: pxH,
@@ -79,22 +62,18 @@ NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
 NSGraphicsContext.current?.shouldAntialias = true
 
 for l in layout {
-  // code, top-aligned to the centred block
+  // top row: code
   let textH = fontSize * 1.4
-  let codeRect = NSRect(x: l.x, y: codeTopY - textH, width: l.w, height: textH)
+  let codeRect = NSRect(x: l.x, y: H - textH - 0.5, width: l.w, height: textH)
   (l.code as NSString).draw(in: codeRect, withAttributes: attrs)
-  // dots in a 4-column grid (up to 2 rows), each row centred under the tile
+  // bottom row: colored dots, centered under the tile
   let n = l.dots.count
-  let cx0 = l.x + l.w / 2
-  for (i, c) in l.dots.enumerated() {
-    let row = i / maxCols
-    let col = i % maxCols
-    let rowCount = min(maxCols, n - row * maxCols)
-    let startX = cx0 - CGFloat(rowCount - 1) * step / 2
-    let dx = startX + CGFloat(col) * step
-    let cy = dotsTopY - dotR - CGFloat(row) * (2 * dotR + rowGap)
+  var dx = l.x + l.w / 2 - CGFloat(max(n - 1, 0)) * step / 2
+  let cy: CGFloat = 4.6
+  for c in l.dots {
     c.setFill()
     NSBezierPath(ovalIn: NSRect(x: dx - dotR, y: cy - dotR, width: 2 * dotR, height: 2 * dotR)).fill()
+    dx += step
   }
 }
 NSGraphicsContext.restoreGraphicsState()
