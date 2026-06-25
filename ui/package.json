@@ -3,7 +3,7 @@
     "dev": "electrobun dev",
     "build": "electrobun build",
     "barrender": "swiftc -O native/render.swift -o native/barrender",
-    "build:release": "swiftc -O native/render.swift -o native/barrender && RELEASE=1 electrobun build --env=stable",
+    "build:release": "swiftc -O native/render.swift -o native/barrender && codesign --force --timestamp --options runtime --sign \"$ELECTROBUN_DEVELOPER_ID\" native/barrender && RELEASE=1 electrobun build --env=stable",
     "test": "bun test"
   },
   "dependencies": {
