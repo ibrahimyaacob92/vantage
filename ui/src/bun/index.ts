@@ -6,9 +6,16 @@ import { startDaemon, setAppActions } from "../../../daemon/src/index";
 // Run Vantage as a single program: start the daemon in-process.
 try { await startDaemon(); } catch (e) { console.error("Vantage: daemon start failed", e); }
 
-// macOS draws menu-bar glyphs white whenever the bar is dark (Dark mode, or a
-// dark wallpaper in Light mode) — the common case. Default to white glyphs.
-const dark = true;
+// Menu-bar glyph color must follow the bar appearance: white in Dark mode,
+// black in Light mode. Detect via AppleInterfaceStyle and re-check periodically
+// so it flips when the system switches theme (e.g. auto day/night).
+async function isDark(): Promise<boolean> {
+  try {
+    const p = Bun.spawn(["defaults", "read", "-g", "AppleInterfaceStyle"], { stdout: "pipe", stderr: "ignore" });
+    return (await new Response(p.stdout).text()).trim() === "Dark";
+  } catch { return false; } // key absent → Light mode
+}
+let dark = await isDark();
 
 let latest = await fetchState();
 const first = await renderBar(latest, dark);
@@ -141,3 +148,10 @@ try { app.on("reopen", () => togglePopover()); } catch {}
 
 await updateBar();
 setInterval(updateBar, 1000);
+
+// Re-check the menu-bar appearance; when it flips (e.g. auto day/night theme),
+// re-render the tiles in the right glyph color.
+setInterval(async () => {
+  const d = await isDark();
+  if (d !== dark) { dark = d; lastSig = ""; await updateBar(); }
+}, 10000);
