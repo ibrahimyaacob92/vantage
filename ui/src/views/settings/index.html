@@ -29,6 +29,19 @@
       .pref { display: flex; align-items: center; gap: 7px; margin-top: 10px; font-size: 12.5px; color: var(--text); cursor: pointer; }
       .pref input { width: 14px; height: 14px; cursor: pointer; }
 
+      .permrow { display: flex; align-items: center; gap: 10px; padding: 10px 13px; border-top: 1px solid var(--line); }
+      .permrow:first-child { border-top: none; }
+      .permdot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: #8e8e93; }
+      .permdot.ok { background: #30d158; } .permdot.bad { background: #ff453a; }
+      .permtext { display: flex; flex-direction: column; }
+      .permtext b { font-weight: 600; }
+      .permtext .sub { color: var(--muted); font-size: 11px; }
+      .permbtn { white-space: nowrap; border: 1px solid var(--line); background: var(--panel); color: var(--text); padding: 6px 11px; font-size: 12px; cursor: pointer; border-radius: 8px; }
+      .permbtn:hover { filter: brightness(.97); }
+      .permhint { color: var(--muted); font-size: 11px; margin-top: 8px; line-height: 1.4; }
+      .permhint.warn { color: #c2410c; }
+      @media (prefers-color-scheme: dark) { .permhint.warn { color: #ffa07a; } }
+
       .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
       .row { display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-top: 1px solid var(--line); }
       .row:first-child { border-top: none; }
@@ -78,6 +91,27 @@
       <h2>Menu bar preview</h2>
       <div id="preview" class="preview"><span class="none">loading…</span></div>
       <label class="pref"><input type="checkbox" id="startup" /> Open Vantage automatically at login</label>
+    </section>
+
+    <section>
+      <h2>Permissions</h2>
+      <div class="card">
+        <div class="permrow">
+          <span class="permdot" id="perm-auto-dot"></span>
+          <div class="permtext"><b>Automation</b><span class="sub">Open browser tabs, focus your editor, start at login</span></div>
+          <span class="spacer"></span>
+          <span class="sub" id="perm-auto-status" style="color:var(--muted);font-size:11px;margin-right:8px"></span>
+          <button class="permbtn" id="perm-auto-btn">Open Settings</button>
+        </div>
+        <div class="permrow">
+          <span class="permdot" id="perm-ax-dot"></span>
+          <div class="permtext"><b>Accessibility</b><span class="sub">Highlight the window when you open it</span></div>
+          <span class="spacer"></span>
+          <span class="sub" id="perm-ax-status" style="color:var(--muted);font-size:11px;margin-right:8px"></span>
+          <button class="permbtn" id="perm-ax-btn">Open Settings</button>
+        </div>
+      </div>
+      <div class="permhint" id="perm-hint">Vantage needs these to control Chrome and your editor. If you clicked “Don’t Allow”, enable Vantage in the relevant pane, then quit &amp; reopen Vantage.</div>
     </section>
 
     <section>

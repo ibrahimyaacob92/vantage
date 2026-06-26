@@ -138,6 +138,31 @@ app.post("/actions/app/login-item", async (c) => {
   return c.json({ ok: true });
 });
 
+// Report macOS permission status so Settings can surface a denied permission
+// (a user who clicked "Don't Allow" otherwise has a silently-broken app).
+app.get("/actions/app/permissions", async (c) => {
+  let automation: boolean | null = null;
+  let accessibility: boolean | null = null;
+  // Automation: can we send Apple events to System Events? (-1743 = denied)
+  const r = await Bun.$`osascript -e ${'tell application "System Events" to return (count of processes)'}`.quiet().nothrow();
+  if (r.exitCode === 0) {
+    automation = true;
+    // Accessibility (assistive access) — only readable once Automation is allowed.
+    const a = await Bun.$`osascript -e ${'tell application "System Events" to return (UI elements enabled)'}`.quiet().nothrow();
+    if (a.exitCode === 0) accessibility = a.stdout.toString().trim() === "true";
+  } else {
+    automation = false;
+  }
+  return c.json({ automation, accessibility });
+});
+app.post("/actions/app/open-privacy", async (c) => {
+  let pane = "automation";
+  try { const p = ((await c.req.json()) as any).pane; if (p) pane = String(p); } catch {}
+  const anchor = pane === "accessibility" ? "Privacy_Accessibility" : "Privacy_Automation";
+  await Bun.$`open ${`x-apple.systempreferences:com.apple.preference.security?${anchor}`}`.quiet().nothrow();
+  return c.json({ ok: true });
+});
+
 // Native macOS folder picker (used by the dashboard's "Browse…" button).
 // Runs the system "choose folder" dialog and returns its POSIX path, or
 // { canceled: true } if the user dismisses it. Never throws upstream.

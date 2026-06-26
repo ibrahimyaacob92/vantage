@@ -42,7 +42,10 @@ export async function renderBar(views: ProjectView[], dark: boolean): Promise<Ba
     const sessions = v.claude.sessions.length ? v.claude.sessions : [{ status: v.claude.headline } as any];
     return { code: code4(v), dots: sessions.map((s) => COLOR[(s.status as ClaudeStatus)] ?? COLOR.gone) };
   });
-  const spec = { h: 22, scale: 2, fontSize: 9.5, fg: dark ? [1, 1, 1] : [0.11, 0.11, 0.12], tiles };
+  // Empty state: no projects yet → still show a visible, clickable "Vantage"
+  // label so new users can find it and open the popover to add a project.
+  const finalTiles = tiles.length ? tiles : [{ code: "Vantage", dots: [] as string[] }];
+  const spec = { h: 22, scale: 2, fontSize: 9.5, fg: dark ? [1, 1, 1] : [0.11, 0.11, 0.12], tiles: finalTiles };
   const specPath = "/tmp/Vantage-bar-spec.json";
   const pngPath = "/tmp/Vantage-bar.png";
   try { await Bun.write(specPath, JSON.stringify(spec)); } catch { return null; }

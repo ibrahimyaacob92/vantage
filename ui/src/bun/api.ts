@@ -38,3 +38,8 @@ export const setPopoverSize = (height: number) =>
 export const getLoginItem = () => j<{ enabled: boolean; supported?: boolean }>(fetch(`${DAEMON}/actions/app/login-item`), { enabled: false });
 export const setLoginItem = (enabled: boolean) =>
   j(fetch(`${DAEMON}/actions/app/login-item`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ enabled }) }), null);
+export const getPermissions = () =>
+  j<{ automation: boolean | null; accessibility: boolean | null }>(
+    fetch(`${DAEMON}/actions/app/permissions`), { automation: null, accessibility: null });
+export const openPrivacy = (pane: "automation" | "accessibility") =>
+  j(fetch(`${DAEMON}/actions/app/open-privacy`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ pane }) }), null);

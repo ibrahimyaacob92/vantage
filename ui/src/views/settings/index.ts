@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { listProjects, createProject, updateProject, deleteProject, reorderProjects, fetchState, pickFolder, getLoginItem, setLoginItem, appQuit } from "../../bun/api";
+import { listProjects, createProject, updateProject, deleteProject, reorderProjects, fetchState, pickFolder, getLoginItem, setLoginItem, appQuit, getPermissions, openPrivacy } from "../../bun/api";
 
 // --- drag-and-drop reordering of the project list ---
 let dragEl: HTMLElement | null = null;
@@ -194,9 +194,31 @@ startup.addEventListener("change", async () => {
   startup.checked = !!r.enabled;
 });
 
+// --- permissions ---
+function setPerm(dotId: string, statusId: string, ok: boolean | null) {
+  const dot = byId(dotId), st = byId(statusId);
+  dot.className = "permdot" + (ok === true ? " ok" : ok === false ? " bad" : "");
+  st.textContent = ok === true ? "Allowed" : ok === false ? "Not allowed" : "—";
+}
+async function renderPerms() {
+  const p = await getPermissions();
+  setPerm("perm-auto-dot", "perm-auto-status", p.automation);
+  setPerm("perm-ax-dot", "perm-ax-status", p.accessibility);
+  const hint = byId("perm-hint");
+  const denied = p.automation === false || p.accessibility === false;
+  hint.className = "permhint" + (denied ? " warn" : "");
+  hint.textContent = denied
+    ? "⚠️ A permission is turned off — some actions won’t work. Click “Open Settings”, enable Vantage, then quit & reopen Vantage."
+    : "Vantage needs these to control Chrome and your editor. If you clicked “Don’t Allow”, enable Vantage in the relevant pane, then quit & reopen Vantage.";
+}
+byId("perm-auto-btn").addEventListener("click", () => openPrivacy("automation"));
+byId("perm-ax-btn").addEventListener("click", () => openPrivacy("accessibility"));
+
 byId("quit").addEventListener("click", () => appQuit());
 
 initDnd();
+renderPerms();
 renderList();
 renderStatus();
 setInterval(() => { if (dragging) return; renderStatus(); renderList(); }, 1500);
+setInterval(renderPerms, 4000); // pick up permission changes the user makes in System Settings
